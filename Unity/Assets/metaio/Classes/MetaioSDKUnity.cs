@@ -373,6 +373,7 @@ public static class MetaioSDKUnity
 
 	public static Vector2di startCamera(MetaioCamera camera)
 	{
+
 		metaio.unitycommunication.StartCameraProtocol protocol = metaio.unitycommunication.StartCameraProtocol.CreateBuilder().SetCamera(camera.ToPB()).Build();
 
 		using(MemoryStream stream = new MemoryStream())

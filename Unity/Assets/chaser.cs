@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using metaio;
 
 class MyLine {
 	
@@ -549,13 +550,11 @@ public class chaser : MonoBehaviour {
 	public Texture btnTexture;
 
 	void OnGUI() {
-		
-		if( timeout > 5 * 60 ) return;
-		
-		GUI.Label (new Rect (Screen.width-100,20,100,50), "" + x + " " + y);
-		GUI.Label (new Rect (Screen.width-100,60,100,50), "" + timeout);
-		
-		if( timeout > 4 * 60 ) return;
+
+		if(GUI.Button(new Rect(10,10,100,80),"Track")) {
+			MetaioSDKUnity.startInstantTracking("INSTANT_3D", "");
+			GUI.enabled = false;
+		}
 		
 		if (GUI.Button(new Rect(120,580, 80, 40), "undo")) {
 			if(lines.Count>0) { 
@@ -591,35 +590,29 @@ public class chaser : MonoBehaviour {
 	}	
 }
 
+// general ui
+//    - improve grid backdrop
+//    - simplify buttons
 
-// throw away small lines
+// lines
+//    - try a thicker line
+//    - curve vary by speed
+//    - transparent lines and the like
+//    - try a pointelist tip
+//    - try minecraft tip
+
+// color
+//    - improve picker
+
+// other
+//    - save
+//    - save to web
+//    - main menu
+//    - share
+//    - timer limited games
+//    - multiplayer
+//    - replay build
 
 
-// - finish the color picker
-//		- reimplement mouse drag
-//		- finish reducing the ui
-
-
-
-
-// - curve vary by speed
-
-// - some shaders and a shader picker
-
-// - can we remove the metaio logo anyway?
-
-// - try different tips; maybe even just a noisy spray tip - could be done with a shader maybe
-
-// - change the anchor shape
-
-// - make color picker a single button
-// - make tip picker a single button
-// - play with the shader more; are we happy with it? should we have different effects?
-// - probably need a minecraft mode
-
-// - can i re-attach to the same backdrop so i can do collective works? i guess i should save the current backdrop
-// - have a timer option for gamelike play
-// - upload to server
-// - multiplayer
 
 

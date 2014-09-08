@@ -276,8 +276,8 @@ class MyLine {
 			int j = vertices.Count - 4;
 			triangles.Add(j+0); triangles.Add(j+1); triangles.Add (j+2);	// top
 			triangles.Add(j+1); triangles.Add(j+3); triangles.Add (j+2);
-			//triangles.Add(j+0); triangles.Add(j+2); triangles.Add (j+1);	// bottom - not needed for one sided
-			//triangles.Add(j+1); triangles.Add(j+3); triangles.Add (j+2);
+			triangles.Add(j+0); triangles.Add(j+2); triangles.Add (j+1);	// bottom - not needed for one sided
+			triangles.Add(j+1); triangles.Add(j+2); triangles.Add (j+3);
 			break;
 		case 1:
 			// a prism
@@ -410,6 +410,7 @@ class MyLine {
 			pointToGeometry(points[i],ups[i],rights[i],velocities[i],c);
 		}
 		
+		// throw away everything if we have too little data - caller must handle this
 		if(points.Count < 5) return false;
 		
 		// and recopy
@@ -430,14 +431,17 @@ class MyLine {
 		
 		// shadow
 		// TODO the shadow mesh doesn't really need a bottom...
-		//	shadowmesh.Clear();
-		//	for(int i=0; i < copy_of_vertices.Length; i++) copy_of_vertices[i].y = 0;
-		//	shadowmesh.vertices = copy_of_vertices;
-		//	shadowmesh.uv = copy_of_uvs;
-		//	shadowmesh.triangles = copy_of_triangles;
-		//	shadowmesh.RecalculateNormals();		
+		int[] copy_of_triangles = triangles.ToArray();
+		Vector3[] copy_of_vertices = vertices.ToArray();
+		Vector2[] copy_of_uvs = uvs.ToArray();
+		for(int i=0; i < copy_of_vertices.Length; i++) copy_of_vertices[i].y = 0;
+		shadowmesh.Clear();
+		shadowmesh.vertices = copy_of_vertices;
+		shadowmesh.uv = copy_of_uvs;
+		shadowmesh.triangles = copy_of_triangles;
+		shadowmesh.RecalculateNormals();		
 	}
-	
+
 	
 };
 

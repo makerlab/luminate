@@ -50,6 +50,7 @@ extern void		UnityInitApplicationGraphics();
 extern void		UnityCleanup();
 extern void		UnityLoadApplication();
 extern void		UnityPlayerLoop();
+extern void		UnityForcedPlayerLoop();
 extern void		UnityInputProcess();
 
 

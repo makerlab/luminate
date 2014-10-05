@@ -9,12 +9,11 @@
 /* Begin PBXBuildFile section */
 		08B24F76137BFDFA00FBA309 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08B24F75137BFDFA00FBA309 /* iAd.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
-		43F05DA919ABF3D30054F0A0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DA819ABF3D30054F0A0 /* Security.framework */; };
-		43F05DAB19ABF3E20054F0A0 /* libz.1.2.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DAA19ABF3E20054F0A0 /* libz.1.2.5.dylib */; };
-		43F05DAD19ABF3EC0054F0A0 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DAC19ABF3EC0054F0A0 /* libxml2.2.dylib */; };
-		43F05DB019ABF41C0054F0A0 /* libiPhone-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DAE19ABF41C0054F0A0 /* libiPhone-lib.a */; };
-		43F05DB119ABF41C0054F0A0 /* metaiosdk in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DAF19ABF41C0054F0A0 /* metaiosdk */; };
-		43F05DB319ABF42D0054F0A0 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43F05DB219ABF42D0054F0A0 /* CoreImage.framework */; };
+		43850D1119DEFAE500360891 /* libiPhone-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D0F19DEFAE500360891 /* libiPhone-lib.a */; };
+		43850D1219DEFAE500360891 /* metaiosdk in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1019DEFAE500360891 /* metaiosdk */; };
+		43850D1419DEFBDB00360891 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1319DEFBDB00360891 /* CoreImage.framework */; };
+		43850D1619DEFBE700360891 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1519DEFBE700360891 /* Security.framework */; };
+		43850D1819DEFBF000360891 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1719DEFBF000360891 /* libxml2.2.dylib */; };
 		5623C57617FDCB0800090B9E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		5623C57717FDCB0800090B9E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 830B5C100E5ED4C100C7819F /* UIKit.framework */; };
 		5623C57D17FDCB0900090B9E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5623C57B17FDCB0900090B9E /* InfoPlist.strings */; };
@@ -110,13 +109,12 @@
 		08B24F75137BFDFA00FBA309 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* graffiti3d.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = graffiti3d.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		43F05DA819ABF3D30054F0A0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		43F05DAA19ABF3E20054F0A0 /* libz.1.2.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.5.dylib; path = usr/lib/libz.1.2.5.dylib; sourceTree = SDKROOT; };
-		43F05DAC19ABF3EC0054F0A0 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
-		43F05DAE19ABF41C0054F0A0 /* libiPhone-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libiPhone-lib.a"; path = "Libraries/libiPhone-lib.a"; sourceTree = "<group>"; };
-		43F05DAF19ABF41C0054F0A0 /* metaiosdk */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = metaiosdk; path = Libraries/metaiosdk; sourceTree = "<group>"; };
-		43F05DB219ABF42D0054F0A0 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
-		5623C57317FDCB0800090B9E /* Unity-iPhone Tests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "Unity-iPhone Tests.octest"; path = graffiti3d.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		43850D0F19DEFAE500360891 /* libiPhone-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libiPhone-lib.a"; path = "Libraries/libiPhone-lib.a"; sourceTree = "<group>"; };
+		43850D1019DEFAE500360891 /* metaiosdk */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = metaiosdk; path = Libraries/metaiosdk; sourceTree = "<group>"; };
+		43850D1319DEFBDB00360891 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		43850D1519DEFBE700360891 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		43850D1719DEFBF000360891 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
+		5623C57317FDCB0800090B9E /* graffiti3d.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = graffiti3d.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5623C57A17FDCB0900090B9E /* Unity-iPhone Tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Unity-iPhone Tests-Info.plist"; sourceTree = "<group>"; };
 		5623C57C17FDCB0900090B9E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5623C57E17FDCB0900090B9E /* Unity_iPhone_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Unity_iPhone_Tests.m; sourceTree = "<group>"; };
@@ -224,10 +222,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43F05DB319ABF42D0054F0A0 /* CoreImage.framework in Frameworks */,
-				43F05DAD19ABF3EC0054F0A0 /* libxml2.2.dylib in Frameworks */,
-				43F05DAB19ABF3E20054F0A0 /* libz.1.2.5.dylib in Frameworks */,
-				43F05DA919ABF3D30054F0A0 /* Security.framework in Frameworks */,
+				43850D1819DEFBF000360891 /* libxml2.2.dylib in Frameworks */,
+				43850D1619DEFBE700360891 /* Security.framework in Frameworks */,
+				43850D1419DEFBDB00360891 /* CoreImage.framework in Frameworks */,
+				43850D1219DEFAE500360891 /* metaiosdk in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				830B5C110E5ED4C100C7819F /* UIKit.framework in Frameworks */,
 				83B256E20E62FEA000468741 /* OpenGLES.framework in Frameworks */,
@@ -236,14 +234,13 @@
 				83B2574F0E63025400468741 /* libiconv.2.dylib in Frameworks */,
 				D8A1C72B0E8063A1000160D3 /* libiPhone-lib.a in Frameworks */,
 				8358D1B80ED1CC3700E3A684 /* AudioToolbox.framework in Frameworks */,
+				43850D1119DEFAE500360891 /* libiPhone-lib.a in Frameworks */,
 				56FD43960ED4745200FE3770 /* CFNetwork.framework in Frameworks */,
 				5682F4B20F3B34FF007A219C /* MediaPlayer.framework in Frameworks */,
 				5692F3DD0FA9D8E500EBA2F1 /* CoreLocation.framework in Frameworks */,
 				56BCBA390FCF049A0030C3B2 /* SystemConfiguration.framework in Frameworks */,
 				08B24F76137BFDFA00FBA309 /* iAd.framework in Frameworks */,
-				43F05DB019ABF41C0054F0A0 /* libiPhone-lib.a in Frameworks */,
 				7F36C11113C5C673007FBDD9 /* CoreMedia.framework in Frameworks */,
-				43F05DB119ABF41C0054F0A0 /* metaiosdk in Frameworks */,
 				7F36C11213C5C673007FBDD9 /* CoreVideo.framework in Frameworks */,
 				7F36C11313C5C673007FBDD9 /* AVFoundation.framework in Frameworks */,
 				56B7959B1442E0F20026B3DD /* CoreGraphics.framework in Frameworks */,
@@ -268,7 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				1D6058910D05DD3D006BFB54 /* graffiti3d.app */,
-				5623C57317FDCB0800090B9E /* Unity-iPhone Tests.octest */,
+				5623C57317FDCB0800090B9E /* graffiti3d.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -284,8 +281,8 @@
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				83B2574E0E63025400468741 /* libiconv.2.dylib */,
-				43F05DAE19ABF41C0054F0A0 /* libiPhone-lib.a */,
-				43F05DAF19ABF41C0054F0A0 /* metaiosdk */,
+				43850D0F19DEFAE500360891 /* libiPhone-lib.a */,
+				43850D1019DEFAE500360891 /* metaiosdk */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
@@ -293,10 +290,9 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				43F05DB219ABF42D0054F0A0 /* CoreImage.framework */,
-				43F05DAC19ABF3EC0054F0A0 /* libxml2.2.dylib */,
-				43F05DAA19ABF3E20054F0A0 /* libz.1.2.5.dylib */,
-				43F05DA819ABF3D30054F0A0 /* Security.framework */,
+				43850D1719DEFBF000360891 /* libxml2.2.dylib */,
+				43850D1519DEFBE700360891 /* Security.framework */,
+				43850D1319DEFBDB00360891 /* CoreImage.framework */,
 				8358D1B70ED1CC3700E3A684 /* AudioToolbox.framework */,
 				7F36C11013C5C673007FBDD9 /* AVFoundation.framework */,
 				56FD43950ED4745200FE3770 /* CFNetwork.framework */,
@@ -490,8 +486,8 @@
 			);
 			name = "Unity-iPhone Tests";
 			productName = "Unity-iPhone Tests";
-			productReference = 5623C57317FDCB0800090B9E /* Unity-iPhone Tests.octest */;
-			productType = "com.apple.product-type.bundle";
+			productReference = 5623C57317FDCB0800090B9E /* graffiti3d.octest */;
+			productType = "com.apple.product-type.bundle.ocunit-test";
 		};
 /* End PBXNativeTarget section */
 

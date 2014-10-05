@@ -41,8 +41,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 	</array>
-	<key>UIInterfaceOrientation</key>
-	<string></string>
 	<key>UIPrerenderedIcon</key>
 	<false/>
 	<key>UIRequiresPersistentWiFi</key>

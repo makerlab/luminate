@@ -13,7 +13,6 @@ static bool     _canRotateToPortrait            = false;
 static bool     _canRotateToPortraitUpsideDown  = false;
 static bool     _canRotateToLandscapeLeft       = false;
 static bool     _canRotateToLandscapeRight      = false;
-static bool     _shouldAutorotate               = false;
 
 static BOOL ShouldAutorotateToInterfaceOrientation_SplashImpl(id, SEL, UIInterfaceOrientation);
 
@@ -102,7 +101,6 @@ static BOOL ShouldAutorotateToInterfaceOrientation_SplashImpl(id, SEL, UIInterfa
 {
     NSArray* supportedOrientation = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"UISupportedInterfaceOrientations"];
 
-    _shouldAutorotate               = [supportedOrientation count] > 1;
     _canRotateToPortrait            = [supportedOrientation containsObject: @"UIInterfaceOrientationPortrait"];
     _canRotateToPortraitUpsideDown  = [supportedOrientation containsObject: @"UIInterfaceOrientationPortraitUpsideDown"];
     _canRotateToLandscapeLeft       = [supportedOrientation containsObject: @"UIInterfaceOrientationLandscapeRight"];
@@ -145,7 +143,7 @@ static BOOL ShouldAutorotateToInterfaceOrientation_SplashImpl(id, SEL, UIInterfa
 
 - (BOOL)shouldAutorotate
 {
-    return _shouldAutorotate;
+    return true;
 }
 
 - (NSUInteger)supportedInterfaceOrientations

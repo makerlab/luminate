@@ -6,7 +6,7 @@
 //   UNITY_VERSION value will be changed
 //   UNITY_X_Y_Z for this new version will be added
 
-#define UNITY_VERSION 452
+#define UNITY_VERSION 454
 
 // known unity versions
 #define UNITY_4_2_0 420
@@ -18,3 +18,5 @@
 #define UNITY_4_5_0 450
 #define UNITY_4_5_1 451
 #define UNITY_4_5_2 452
+#define UNITY_4_5_3 453
+#define UNITY_4_5_4 454

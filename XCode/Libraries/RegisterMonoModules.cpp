@@ -7,7 +7,7 @@ extern "C"
 	typedef void* gpointer;
 	typedef int gboolean;
 #if !(TARGET_IPHONE_SIMULATOR)
-	const char*			UnityIPhoneRuntimeVersion = "4.5.2f1";
+	const char*			UnityIPhoneRuntimeVersion = "4.5.4f1";
 	void				mono_dl_register_symbol (const char* name, void *addr);
 	extern int 			mono_ficall_flag;
 	void				mono_aot_register_module(gpointer *aot_info);
@@ -1074,6 +1074,10 @@ void RegisterAllStrippedInternalCalls ()
 	Register_UnityEngine_Physics2D_get_raycastsHitTriggers ();
 	void Register_UnityEngine_Physics2D_set_raycastsHitTriggers ();
 	Register_UnityEngine_Physics2D_set_raycastsHitTriggers ();
+	void Register_UnityEngine_Physics2D_get_deleteStopsCallbacks ();
+	Register_UnityEngine_Physics2D_get_deleteStopsCallbacks ();
+	void Register_UnityEngine_Physics2D_set_deleteStopsCallbacks ();
+	Register_UnityEngine_Physics2D_set_deleteStopsCallbacks ();
 	void Register_UnityEngine_Physics2D_get_velocityThreshold ();
 	Register_UnityEngine_Physics2D_get_velocityThreshold ();
 	void Register_UnityEngine_Physics2D_set_velocityThreshold ();
@@ -2462,6 +2466,10 @@ void RegisterAllStrippedInternalCalls ()
 	Register_UnityEngine_Animator_set_updateMode ();
 	void Register_UnityEngine_Animator_get_hasTransformHierarchy ();
 	Register_UnityEngine_Animator_get_hasTransformHierarchy ();
+	void Register_UnityEngine_Animator_get_allowConstantClipSamplingOptimization ();
+	Register_UnityEngine_Animator_get_allowConstantClipSamplingOptimization ();
+	void Register_UnityEngine_Animator_set_allowConstantClipSamplingOptimization ();
+	Register_UnityEngine_Animator_set_allowConstantClipSamplingOptimization ();
 	void Register_UnityEngine_Animator_get_gravityWeight ();
 	Register_UnityEngine_Animator_get_gravityWeight ();
 	void Register_UnityEngine_Animator_INTERNAL_get_bodyPosition ();
@@ -2900,6 +2908,10 @@ void RegisterAllStrippedInternalCalls ()
 	Register_UnityEngine_Terrain_Internal_GetDrawTreesAndFoliage ();
 	void Register_UnityEngine_Terrain_Internal_SetDrawTreesAndFoliage ();
 	Register_UnityEngine_Terrain_Internal_SetDrawTreesAndFoliage ();
+	void Register_UnityEngine_Terrain_Internal_GetCollectDetailPatches ();
+	Register_UnityEngine_Terrain_Internal_GetCollectDetailPatches ();
+	void Register_UnityEngine_Terrain_Internal_SetCollectDetailPatches ();
+	Register_UnityEngine_Terrain_Internal_SetCollectDetailPatches ();
 	void Register_UnityEngine_Terrain_INTERNAL_CALL_Internal_SampleHeight ();
 	Register_UnityEngine_Terrain_INTERNAL_CALL_Internal_SampleHeight ();
 	void Register_UnityEngine_Terrain_Internal_ApplyDelayedHeightmapModification ();
@@ -3062,6 +3074,8 @@ void RegisterAllStrippedInternalCalls ()
 	Register_UnityEngine_Resources_FindObjectsOfTypeAll ();
 	void Register_UnityEngine_Resources_Load ();
 	Register_UnityEngine_Resources_Load ();
+	void Register_UnityEngine_Resources_LoadAsync ();
+	Register_UnityEngine_Resources_LoadAsync ();
 	void Register_UnityEngine_Resources_LoadAll ();
 	Register_UnityEngine_Resources_LoadAll ();
 	void Register_UnityEngine_Resources_GetBuiltinResource ();

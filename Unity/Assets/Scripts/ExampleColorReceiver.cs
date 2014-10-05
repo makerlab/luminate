@@ -13,11 +13,10 @@ public class ExampleColorReceiver : MonoBehaviour {
 		target.SendMessage("SetColor",color);
 	}
 
-    void OnGUI()
-    {
-		var r = Camera.mainCamera.pixelRect;
-		var rect = new Rect(r.center.x + r.height / 6 + 50, r.center.y, 100, 100);
-		GUI.Label (rect, "#" + ToHex(color.r) + ToHex(color.g) + ToHex(color.b));	
+    void OnGUI() {
+//		var r = Camera.mainCamera.pixelRect;
+//		var rect = new Rect(r.center.x + r.height / 6 + 50, r.center.y, 100, 100);
+//		GUI.Label (rect, "#" + ToHex(color.r) + ToHex(color.g) + ToHex(color.b));	
     }
 
 	string ToHex(float n)

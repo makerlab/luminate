@@ -114,6 +114,7 @@ extern "C" int CreateContext_UnityCallback(UIWindow** window, int* screenWidth, 
 
 	int resW=0, resH=0;
 	QueryTargetResolution(&resW, &resH);
+	UnityRequestRenderingResolution(resW, resH);
 
 	DisplayConnection* display = GetAppController().mainDisplay;
 	[display createContext:nil];

@@ -56,3 +56,8 @@
 #endif
 
 
+#ifdef __IPHONE_8_0
+	#define UNITY_IOS8_ORNEWER_SDK (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0)
+#else
+	#define UNITY_IOS8_ORNEWER_SDK 0
+#endif

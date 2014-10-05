@@ -26,6 +26,11 @@
 	self.multipleTouchEnabled	= YES;
 	self.exclusiveTouch			= YES;
 	self.contentScaleFactor		= scale;
+	if (_ios50orNewer)
+	{
+		self.isAccessibilityElement = TRUE;
+		self.accessibilityTraits = UIAccessibilityTraitAllowsDirectInteraction;
+	}
 
 	[self onUpdateSurfaceSize:frame.size];
 }

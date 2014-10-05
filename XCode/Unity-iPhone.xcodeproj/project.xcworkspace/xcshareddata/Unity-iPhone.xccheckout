@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>CF2B7A34-DA47-4929-ACE9-DEA4B495B2C8</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Unity-iPhone</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>C739049EF3733F1026F854F6EE5B6FECDFF308BB</key>
+		<string>https://github.com/anselm/draw3d.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>XCode/Unity-iPhone.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>C739049EF3733F1026F854F6EE5B6FECDFF308BB</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/anselm/draw3d.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>C739049EF3733F1026F854F6EE5B6FECDFF308BB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C739049EF3733F1026F854F6EE5B6FECDFF308BB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>draw3d</string>
+		</dict>
+	</array>
+</dict>
+</plist>

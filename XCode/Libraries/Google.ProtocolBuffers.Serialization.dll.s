@@ -37797,7 +37797,7 @@ mono_image_table:
 
 	.long 1,2,4,1,521
 	.asciz "mscorlib"
-	.asciz "0FD09F19-A3A5-4B99-9CB3-DADD39F03557"
+	.asciz "BDA3258C-0C63-4B93-A52F-C73337202C9E"
 	.asciz ""
 	.asciz "7cec85d7bea7798e"
 	.align 3
@@ -37811,14 +37811,14 @@ mono_image_table:
 
 	.long 1,2,4,1,521
 	.asciz "System"
-	.asciz "C675E651-E31F-4378-9211-68C0A20D6170"
+	.asciz "7B706CCA-36D2-43A5-B4EE-05FC276639E5"
 	.asciz ""
 	.asciz "7cec85d7bea7798e"
 	.align 3
 
 	.long 1,2,0,5,0
 	.asciz "System.Xml"
-	.asciz "EC18AC29-E53E-4C00-96EE-66DAE57063DC"
+	.asciz "157823AB-FE84-449E-BF84-A4C4488DA1E4"
 	.asciz ""
 	.asciz "7cec85d7bea7798e"
 	.align 3

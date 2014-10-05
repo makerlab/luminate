@@ -14,9 +14,7 @@ using metaio;
 //    + a more expensive culling strategy globally optimizes the line when done (douglas peucker )
 //    + this code produces a real 3d shadow line on a ground plane as an option; this may be more useful than shader based shadows
 //    + lines are double sided as a bonus; this is expensive and it would be nice to avoid based on shader however
-//
-//    - unity and c# have *SERIOUS* limits in scavenging existing arrays so this code rebuilds arrays more often than ideal
-//    - in a perfect world I might write the bottom layer of this using opengl to avoid having to thrash memory so hard
+//	  + works at the unity mesh level - although arguably it should be rewritten to do opengl calls directly to reduce memory thrashing
 // 
 //    - lines can be 2d ribbons, 3d prisms or boxes - only 2d ribbons are being used or tested by me (prisms and boxes probably fail)
 //
@@ -24,6 +22,8 @@ using metaio;
 //		this has not been done yet so textured ribbons are not going to be perfect... see affine distortion
 //
 //    - i'd like to package up a variety of other effects here like cheap fast bloom - but ios/android don't support post fx shaders
+//
+//	  - may need to write some custom shaders to deal with light and shadow more effectively
 //
 
 class MyLine {
@@ -443,6 +443,9 @@ class MyLine {
 	
 	
 	void rebuildMesh() {
+	
+		// XXX TODO this code thrashes memory but there is no way around it except to switch down to C++ or use OpenGL directly
+	
 		mesh.Clear();
 		mesh.vertices = vertices.ToArray ();
 		mesh.uv = uvs.ToArray ();
@@ -546,33 +549,33 @@ public class Draw3DLines : MonoBehaviour {
 	}	
 }
 
-// lines
-//		* shadows back on - it would be nice not to waste energy on back side of shadows
-//		
-//		- make decent picker for colors and pen tips etc
+// ribbons oct 15 2015
 //
-
-// lines
-//    - try a thicker line
-//    - curve vary by speed
-//    - transparent lines and the like
-//    - try a pointelist tip
-//    - try minecraft tip
-
-
-// general ui
-//    - improve grid backdrop
-//    - simplify buttons
-
+//		- i would like to try vary the line width by speed of drawing
+//
+//		- i would like to try harder to adjust ribbon brightness based on incident angle of sunlight; custom shader? or?
+//
+//		- i would like to try do a glow on the ribbon - play with glow shader
+//
+//		- correct interpolation on textures would let me draw swatches more easily and this would look quite good
+//
+//		- draw smoke, fog, particles and other kinds of things
+//
+//		- try using the default shadow support rather than my own custom shadows so that ribbons can self shadow
+//
+//	<	- try making real world pickers for color choices and for tips and for loading and saving
+//
+//		- try a minecraft block style paint brush tip
+//
 // other
-//    - save
-//    - save to web
-//    - main menu
-//    - share
-//    - timer limited games
-//    - multiplayer
-//    - replay build
-
-
-
+//
+//		- multiplayer
+//
+//		- time limit game
+//
+//		- replay build process
+//
+//		- save and save to web
+//
+//		- have a menu of previous files
 

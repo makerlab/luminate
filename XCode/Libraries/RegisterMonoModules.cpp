@@ -15,7 +15,6 @@ extern "C"
 	extern gpointer*	mono_aot_module_Assembly_CSharp_firstpass_info; // Assembly-CSharp-firstpass.dll
 	extern gpointer*	mono_aot_module_Assembly_CSharp_info; // Assembly-CSharp.dll
 	extern gpointer*	mono_aot_module_Assembly_UnityScript_firstpass_info; // Assembly-UnityScript-firstpass.dll
-	extern gpointer*	mono_aot_module_Assembly_UnityScript_info; // Assembly-UnityScript.dll
 	extern gpointer*	mono_aot_module_Boo_Lang_info; // Boo.Lang.dll
 	extern gpointer*	mono_aot_module_Google_ProtocolBuffers_Serialization_info; // Google.ProtocolBuffers.Serialization.dll
 	extern gpointer*	mono_aot_module_Google_ProtocolBuffers_info; // Google.ProtocolBuffers.dll
@@ -25,7 +24,6 @@ extern "C"
 	extern gpointer*	mono_aot_module_System_info; // System.dll
 	extern gpointer*	mono_aot_module_UnityEngine_info; // UnityEngine.dll
 	extern gpointer*	mono_aot_module_UnityScript_Lang_info; // UnityScript.Lang.dll
-	extern gpointer*	mono_aot_module_Vectrosity_info; // Vectrosity.dll
 	extern gpointer*	mono_aot_module_mscorlib_info; // mscorlib.dll
 #endif // !(TARGET_IPHONE_SIMULATOR)
 	void	createMetaioSDKUnity();
@@ -113,7 +111,6 @@ void RegisterMonoModules()
 	mono_aot_register_module(mono_aot_module_Assembly_CSharp_firstpass_info);
 	mono_aot_register_module(mono_aot_module_Assembly_CSharp_info);
 	mono_aot_register_module(mono_aot_module_Assembly_UnityScript_firstpass_info);
-	mono_aot_register_module(mono_aot_module_Assembly_UnityScript_info);
 	mono_aot_register_module(mono_aot_module_Boo_Lang_info);
 	mono_aot_register_module(mono_aot_module_Google_ProtocolBuffers_Serialization_info);
 	mono_aot_register_module(mono_aot_module_Google_ProtocolBuffers_info);
@@ -123,7 +120,6 @@ void RegisterMonoModules()
 	mono_aot_register_module(mono_aot_module_System_info);
 	mono_aot_register_module(mono_aot_module_UnityEngine_info);
 	mono_aot_register_module(mono_aot_module_UnityScript_Lang_info);
-	mono_aot_register_module(mono_aot_module_Vectrosity_info);
 	mono_aot_register_module(mono_aot_module_mscorlib_info);
 
 	mono_dl_register_symbol("createMetaioSDKUnity", (void*)&createMetaioSDKUnity);

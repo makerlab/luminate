@@ -477,11 +477,30 @@ public class Draw3DLines : MonoBehaviour {
 	public Material material;
 	public Material shadow;
 	public Transform target;
+	public Camera camera;
 
 	MyLine.STYLE style = MyLine.STYLE.CURSIVE_DOUBLE_SIDED;
 	
 	List<MyLine> lines = new List<MyLine>();
 	MyLine line;
+	
+	void GUIEvent(Vector3 input) {
+
+		Ray ray = camera.ScreenPointToRay(input);
+		RaycastHit hit;
+		if( Physics.Raycast (ray,out hit) ) {
+			Debug.Log ( hit );
+			Debug.Log ( hit.transform.name );
+			return;
+		}
+
+		if(input.x > 100 && input.y > 100) {
+			line = new MyLine(color,style,material,shadow);
+			lines.Add(line);
+		}
+		
+		
+	}
 
 	void Update () {
 		
@@ -512,11 +531,7 @@ public class Draw3DLines : MonoBehaviour {
 				line = null;
 			}
 			if(Input.GetMouseButtonDown(0)) {
-				Debug.Log ( Input.mousePosition.x + " " + Input.mousePosition.y );
-				if(Input.mousePosition.x > 100 && Input.mousePosition.y > 100) {
-					line = new MyLine(color,style,material,shadow);
-					lines.Add(line);
-				}
+				GUIEvent(Input.mousePosition);
 			}
 		}
 		
@@ -549,23 +564,28 @@ public class Draw3DLines : MonoBehaviour {
 	}	
 }
 
-// ribbons oct 15 2015
 //
-//		- i would like to try vary the line width by speed of drawing
+// ribbon shading and appearance
 //
-//		- i would like to try harder to adjust ribbon brightness based on incident angle of sunlight; custom shader? or?
 //
-//		- i would like to try do a glow on the ribbon - play with glow shader
+//	<	- why do ribbons rendered with diffuse + lighting-on have bands of black across them? is this bad normals???
 //
-//		- correct interpolation on textures would let me draw swatches more easily and this would look quite good
+//		x glow on ribbons appears to expensive for iOS - is there any way we can do this?
+//		x looks too hard to have semi-transparent ribbons that cast shadows?
+//		x should i bother to have a transparent ground plane to allow shadows on it?
+//		- should i make fake shadows an option or leave it on always?
 //
-//		- draw smoke, fog, particles and other kinds of things
+//		- can we correct affine texture rendering on ribbons so we can have textured ribbons of varying width per segment?
 //
-//		- try using the default shadow support rather than my own custom shadows so that ribbons can self shadow
+//		- try draw blocks like minecrack, smoke, fog, lights particles and other effects?
+//
+//		- vary line width by speed; fast is fatter i guess
+//
+//		- try draw single segment transparent stencils
+//
+//		- try allow using finger to adjust and draw by hand rather than just the cursor position
 //
 //	<	- try making real world pickers for color choices and for tips and for loading and saving
-//
-//		- try a minecraft block style paint brush tip
 //
 // other
 //

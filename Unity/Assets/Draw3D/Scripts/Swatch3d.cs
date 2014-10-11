@@ -24,6 +24,7 @@ using System.Collections.Specialized;
 public class Swatch3d: MonoBehaviour {
 	
 	public bool EnableShadows = true;
+	public bool EnableBottom = true;
 	public bool IncrementalDouglasPeucker = false; // does not apply to swatch type
 	public Material mainMaterial;
 	public Material shadowMaterial;
@@ -67,23 +68,31 @@ public class Swatch3d: MonoBehaviour {
 		
 		style = _style;
 		
+		// set style aspects
+		if(style == STYLE.SWATCH) {
+			EnableShadows = false;
+			IncrementalDouglasPeucker = false;
+		}
+		
 		// Set materials supplied else use default else crash
 		if(_material != null) mainMaterial = _material;
 		if(_shadowMaterial !=null) shadowMaterial = _material;
 
-		// Always clone the top material so we can modify it without affecting other swatches
+		// Always clone the main material so we can modify it without affecting other swatches
 		mainMaterial = Object.Instantiate(mainMaterial) as Material;
 		mainMaterial.color = _color;
 		
-		// build top of line
-		main = gameObject;
-		main.name = "Draw"+TotalCount;
-		main.renderer.material = mainMaterial;
-		mainMesh = gameObject.GetComponent<MeshFilter>().mesh;
-		
-		// build bottom of line
-		// NOTE using geometry not shader for backfaces... arguable either way : http://danielbrauer.com/files/rendering-double-sided-geometry.html
 		if(true) {
+			// build top of line
+			main = gameObject;
+			main.name = "Draw"+TotalCount;
+			main.renderer.material = mainMaterial;
+			mainMesh = gameObject.GetComponent<MeshFilter>().mesh;
+		}
+	
+		if(EnableBottom) {
+			// build bottom of line
+			// NOTE using geometry not shader for backfaces... arguable either way : http://danielbrauer.com/files/rendering-double-sided-geometry.html
 			bottom = new GameObject( "Bottom" + TotalCount );
 			bottom.transform.parent = gameObject.transform;
 			bottom.AddComponent<MeshFilter>();
@@ -92,9 +101,9 @@ public class Swatch3d: MonoBehaviour {
 			bottomMesh = bottom.GetComponent<MeshFilter>().mesh;
 		}
 		
-		// build shadow
-		// NOTE separate geometry is used for this due to material changes not being supported on a per polygon basis in Unity
 		if(EnableShadows) {
+			// build shadow
+			// NOTE separate geometry is used for this due to material changes not being supported on a per polygon basis in Unity
 			shadow = new GameObject( "Shadow" + TotalCount );
 			shadow.transform.parent = gameObject.transform;
 			shadow.AddComponent<MeshFilter>();
@@ -103,34 +112,7 @@ public class Swatch3d: MonoBehaviour {
 			shadowMesh = shadow.GetComponent<MeshFilter>().mesh;
 		}
 	}
-	
 
-	public void destroy() {
-		if(main!=null)GameObject.Destroy (main);
-	}
-
-	public void test() {
-		
-		Vector3 xyz;
-
-		xyz = new Vector3(0,10,0);
-		paintConsider(xyz,Vector3.right,3,false);
-		
-		xyz = new Vector3(0,10,20);
-		paintConsider(xyz,Vector3.right,4,false);
-		
-		xyz = new Vector3(0,30,20);
-		paintConsider(xyz,Vector3.right,5,false);
-		
-		xyz = new Vector3(0,40,10);
-		paintConsider(xyz,Vector3.right,6,false);
-		
-		xyz = new Vector3(0,20,-40);
-		paintConsider(xyz,Vector3.right,7,false);
-
-		paintFinish();
-	}
-		
 	//--------------------------------------------------------------------------------------------------------------------------
 	
 	// accumulated user input describing users drawing action through 3d space
@@ -146,40 +128,33 @@ public class Swatch3d: MonoBehaviour {
 	//public List<Vector3> normals = new List<Vector3>();
 	//public List<Color> colors = new List<Color>();
 
-	// extra state information about where exactly we are painting
-	Ray ray;
-	public void paintSetRay(Ray _ray) {
-		ray = _ray;
-	}
-
 	// call this to add points
-	public bool paintConsider(Transform transform,float width = 3.0f ) {
-
-		// TODO - use the ray to modify the position in the plane so we can draw with the mouse
-
-		return paintConsider(transform.position,transform.right,width,true);
-	}
-
-	// or call this to add points
-	public bool paintConsider(Vector3 xyz,Vector3 right,float width,bool toGeometry = true) {
+	public bool paintConsider(Vector3 xyz, Vector3 forward, Vector3 right,float width = 3.0f ) {
 
 		if(style == STYLE.SWATCH) {
 
 			if(points.Count < 2) {
 				points.Add(xyz);
-				rights.Add(right);
+				rights.Add(Vector3.right);
 				velocities.Add(width);
 			} else {
+
+				// a swatch is flattest at right angles to the intersection of the camera forward and swatch direction vector
+				right = Vector3.Cross( forward, xyz - points[0] ).normalized * width;
+								
 				points[1] = xyz;
 				rights[1] = right;
+				rights[0] = right;
 				velocities[1] = width;
 			}
 			
 		} else {
-
+			
 			// If not doing a full blown early optimization then at least do a quick test to discard the many cospatial points
-			if(IncrementalDouglasPeucker == false && (points.Count > 0 && (xyz-points[points.Count-1]).sqrMagnitude < sqrToleranceMin)) {
-				return false;
+			if(IncrementalDouglasPeucker == false) {
+				if((points.Count > 0 && (xyz-points[points.Count-1]).sqrMagnitude < sqrToleranceMin)) {
+					return false;
+				}
 			}
 
 			points.Add(xyz);
@@ -187,47 +162,44 @@ public class Swatch3d: MonoBehaviour {
 			velocities.Add(width);
 		}
 
-		if(toGeometry) {
-			paintToGeometry(IncrementalDouglasPeucker,false);
-		}
+		paintToGeometry(false);
 
 		return true;
 	}
 
 	// optional final polish pass; simplifies line and lets unity optimize geometry; do not do incremental sanitization if did it before
 	public bool paintFinish() {
-		return paintToGeometry(IncrementalDouglasPeucker ? false : true,true);
+		return paintToGeometry(true);
 	}
 
 	// convert our points into unity geometry
-	public bool paintToGeometry(bool sanitize = false, bool compress = false) {
+	public bool paintToGeometry(bool compress = false) {
 		
 		// Do nothing if we have too little to chew on
 		if(points.Count < 2) return false;
 
-		// For swatches just reset the line for now - xxx slightly hacked and lazy
 		if(style == STYLE.SWATCH) {
+			// For swatches just reset the line for now - xxx slightly hacked and lazy
 			vertices = new List<Vector3>();
 			uvs = new List<Vector2>();
 			triangles = new List<int>();
 			cleanIndex = 0;
-			sanitize = false;
-		}
+		} else {
 
-		// Optionally can sanitize user input every time ( but never at all if is a swatch style)
-		if(sanitize) {
-			// pass user input through a sanitization filter
-			int beforeLength = points.Count;
-			simplifyDouglasPeucker();
-			int afterLength = points.Count;
-			if(afterLength < beforeLength ) {
-				// it appears there was cleanup somewhere in the array; so force remake the display geometry completely
-				vertices = new List<Vector3>();
-				uvs = new List<Vector2>();
-				triangles = new List<int>();
-				cleanIndex = 0;
-			} else {
-				// appears there was no optimization; this isn't strictly an accurate test... should checksum ideally
+			// For most line drawings - we're either incrementally optimizing or we optimize once at the end
+			if(IncrementalDouglasPeucker != compress) {
+				int beforeLength = points.Count;
+				simplifyDouglasPeucker();
+				int afterLength = points.Count;
+				if(afterLength < beforeLength ) {
+					// it appears there was cleanup somewhere in the array; so force remake the display geometry completely
+					vertices = new List<Vector3>();
+					uvs = new List<Vector2>();
+					triangles = new List<int>();
+					cleanIndex = 0;
+				} else {
+					// appears there was no optimization; this isn't strictly an accurate test... should checksum ideally
+				}
 			}
 		}
 		
@@ -255,7 +227,7 @@ public class Swatch3d: MonoBehaviour {
 		// TODO deal with affine textures or don't share vertices between triangles
 		// TODO deal with different kinds of UV scales; sometimes we want world scale sometimes we want use an object scale
 		// http://forum.unity3d.com/threads/correcting-affine-texture-mapping-for-trapezoids.151283/
-		uvs.Add(new Vector2(-1.0f,uvx));
+		uvs.Add(new Vector2(0,uvx));
 		uvs.Add(new Vector2(1.0f,uvx));
 		uvx += 1.0f;
 
@@ -276,39 +248,40 @@ public class Swatch3d: MonoBehaviour {
 		Vector2[] uv = uvs.ToArray();
 		int[] tri = triangles.ToArray();
 
-		// Build top side of ribbon as a geometry
+		if(true) {
+			// Build top side of ribbon as a geometry
+			mainMesh.Clear();
+			mainMesh.vertices = v;
+			mainMesh.uv = uv;
+			mainMesh.triangles = tri;
+			mainMesh.RecalculateNormals();
+			//topMesh.RecalculateBounds();
+			if(optimize) mainMesh.Optimize();
+		}
+	
+		if(EnableBottom) {
+			// Build bottom side
+			for(int i = 0; i < tri.Length; i+=3) { int val = tri[i+1]; tri[i+1]=tri[i+2]; tri[i+2]=val; }		
+			bottomMesh.Clear();
+			bottomMesh.vertices = v;
+			bottomMesh.uv = uv;
+			bottomMesh.triangles = tri;
+			bottomMesh.RecalculateNormals();
+			//bottomMesh.RecalculateBounds();
+			if(optimize) bottomMesh.Optimize();
+		}
 
-		mainMesh.Clear();
-		mainMesh.vertices = v;
-		mainMesh.uv = uv;
-		mainMesh.triangles = tri;
-		mainMesh.RecalculateNormals();
-		//topMesh.RecalculateBounds();
-		if(optimize) mainMesh.Optimize();
-		
-		// Build bottom side
-		for(int i = 0; i < tri.Length; i+=3) { int val = tri[i+1]; tri[i+1]=tri[i+2]; tri[i+2]=val; }
-		
-		bottomMesh.Clear();
-		bottomMesh.vertices = v;
-		bottomMesh.uv = uv;
-		bottomMesh.triangles = tri;
-		bottomMesh.RecalculateNormals();
-		//bottomMesh.RecalculateBounds();
-		if(optimize) bottomMesh.Optimize();
-
-		// Build shadow	
-		for(int i=0; i < v.Length; i++) v[i].y = 0;
-		
-		if(EnableShadows == false) return;
-		shadowMesh.Clear();
-		shadowMesh.vertices = v;
-		shadowMesh.uv = uv;
-		shadowMesh.triangles = tri;
-		//shadowMesh.RecalculateNormals();
-		//shadowMesh.RecalculateBounds();
-		if(optimize) shadowMesh.Optimize();
-
+		if(EnableShadows) {
+			// Build shadow	
+			for(int i=0; i < v.Length; i++) v[i].y = 0;
+			shadowMesh.Clear();
+			shadowMesh.vertices = v;
+			shadowMesh.uv = uv;
+			shadowMesh.triangles = tri;
+			//shadowMesh.RecalculateNormals();
+			//shadowMesh.RecalculateBounds();
+			if(optimize) shadowMesh.Optimize();
+		}	
 	}
 
 	

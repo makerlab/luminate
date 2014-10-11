@@ -8,36 +8,72 @@ using metaio;
 
 public class SwatchInputManager : MonoBehaviour {
 
-	// For tracking 3d UX elements
-	public Camera camera;
-
 	// A concept of a physical brush that chases an idealized target to smooth out line drawing
 	public Transform brush;
 	public Transform target;
 	
-	// Sharead state for drawable things
+	// Shared state for drawable things
 	public GameObject prefabSwatch;
 	public Color color = Color.green;
 	public Material material;
 	Swatch3d.STYLE style = Swatch3d.STYLE.SWATCH;
+	public float DrawSizeDefault = 8.0f;
 
 	// current focus of drawing
 	GameObject focus;
 	
 	// ----------------------------------------------------------------------------
+	
+	void SetMaterial(Material m) {
+		material = Object.Instantiate(m) as Material;
+		material.color = color;		
+		brush.renderer.material = m;
+		target.renderer.material = m;
+	}
+
+	void SetColor(Color c) {
+		color = c;
+		material.color = color;
+		brush.renderer.material = material;
+		target.renderer.material = material;
+	}
+
+	float bounce = 0;
+	Transform t;
+	void HandleBounce(Transform _t) {
+		t = _t;
+		bounce = 10;
+	}
+
+	void HandleUpdate() {
+		if(bounce < 1) return;
+		bounce--;
+		float size = 0.8f + (10.0f-bounce)/50.0f;
+		t.localScale = new Vector3(size,size,size);
+	}
 
 	bool HandleButtons(Vector3 input) {
 		// look for button events
-		Ray ray = camera.ScreenPointToRay(input);
+		Ray ray = Camera.main.ScreenPointToRay(input);
 		RaycastHit hit;
 		if( Physics.Raycast (ray,out hit) ) {
-			Debug.Log ( hit );
-			Debug.Log ( hit.transform.name );
-			if(hit.transform.name.StartsWith ("Palette")) { // TODO hack - build a more formal GUI widget system
-				material = hit.transform.gameObject.renderer.material;
-				color = material.color;
-				Debug.Log ("set material");
-				return true;
+			HandleBounce(hit.transform);
+			switch(hit.transform.name) {
+				case "Palette1": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette2": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette3": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette4": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette5": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette6": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Swatch1":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
+				case "Swatch2":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
+				case "SaveExit": break;
+				case "Sunlight": break;
+				case "Undo":     Undo(); return true;
+				case "Redo":     break;
+				case "Ribbon":   style = Swatch3d.STYLE.CURSIVE_DOUBLE_SIDED; return true;
+				case "Swatch":   style = Swatch3d.STYLE.SWATCH; return true;
+				default: break;
 			}
 		}
 		return false;
@@ -50,7 +86,9 @@ public class SwatchInputManager : MonoBehaviour {
 		if(input.x < 100 && input.y < 100) return;
 
 		// check for 3d in world button events
-		if(HandleButtons(input)) return;
+		if(HandleButtons(input)) {
+			return;
+		}
 
 		// start new art
 		focus = Instantiate(prefabSwatch) as GameObject;
@@ -63,34 +101,105 @@ public class SwatchInputManager : MonoBehaviour {
 
 	void HandleMove(Vector3 input) {
 		if(focus==null) return;
+
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
+
+/*
 		Ray ray = camera.ScreenPointToRay(input);
+		Plane plane = new Plane(brush.transform.up, xyz);
+		float distance = 0; // this will return the distance from the camerass
+		if (plane.Raycast(ray, out distance)){ // if plane hit...
+			Debug.Log ("a hit at " + ray.GetPoint (distance));
+		} else {
+			Debug.Log ("NO HIT");
+		}
+		
+		Debug.Log ("is at " + xyz);
+
+
 		art.paintSetRay(ray);
-		art.paintConsider(brush.transform,3);
+
+		Plane plane = new Plane(Vector3.up, Vector3.zero);
+		float distance = 0; // this will return the distance from the camerass
+		if (plane.Raycast(ray, out distance)){ // if plane hit...
+			Debug.Log ("hit at " + ray.GetPoint (distance));
+		}
+
+		input.z = 300.0f;
+		 ray = camera.ScreenPointToRay(input);
+		art.paintSetRay(ray);
+		Debug.Log ("ray is " + ray );
+*/
+		Vector3 xyz = brush.transform.position;
+		Vector3 right = brush.transform.right;
+		Vector3 forward = brush.transform.forward;
+		input.z = 400;
+		Vector3 point = Camera.main.ScreenToWorldPoint(input);
+		xyz = point;
+
+		art.paintConsider(xyz,forward,right,DrawSizeDefault);
 	}
 
 	void HandleUp() {
+		Debug.Log ("Finished " + focus );
 		if(focus==null) return;
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
-		art.paintFinish();
-		focus = null;
-	}
-
-	// ----------------------------------------------------------------------------
-	// Test
-
-	void Awake() {
-		focus = Instantiate(prefabSwatch) as GameObject;
-		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
-		art.setup(color,style,material);
-		art.test ();
+		if(art.paintFinish() == false) {
+			Destroy(art);
+		}
 		focus = null;
 	}
 
 	// ----------------------------------------------------------------------------
 	
+	// shake detection
+	const float accelerometerUpdateInterval = 1.0f / 60.0f;
+	// The greater the value of LowPassKernelWidthInSeconds, the slower the filtered value will converge towards current input sample (and vice versa).
+	const float lowPassKernelWidthInSeconds = 1.0f;
+	// This next parameter is initialized to 2.0 per Apple's recommendation, or at least according to Brady! ;)
+	float shakeDetectionThreshold = 2.0f;
+	
+	private float lowPassFilterFactor = accelerometerUpdateInterval / lowPassKernelWidthInSeconds;
+	private Vector3 lowPassValue = Vector3.zero;
+	private Vector3 acceleration = Vector3.zero;
+	private Vector3 deltaAcceleration = Vector3.zero;
+	int shakelatch = 0;
+
+	void ShakeStart() {
+		shakeDetectionThreshold *= shakeDetectionThreshold;
+		lowPassValue = Input.acceleration;
+	}
+
+	void ShakeUpdate() {
+		acceleration = Input.acceleration;
+		lowPassValue = Vector3.Lerp(lowPassValue, acceleration, lowPassFilterFactor);
+		deltaAcceleration = acceleration - lowPassValue;
+		if(shakelatch>0) { shakelatch--; return; }
+		if (deltaAcceleration.sqrMagnitude < shakeDetectionThreshold) return;
+		if( transform.childCount < 1) return;
+		Undo();
+		shakelatch = 30;
+	}
+
+	void Undo() {
+		if( transform.childCount < 1) return;
+		Destroy(transform.GetChild ( transform.childCount - 1 ).gameObject );
+	}
+
+	// ----------------------------------------------------------------------------
+
+	void Start() {
+		material = Object.Instantiate(material) as Material;
+		Screen.orientation = ScreenOrientation.LandscapeLeft;
+		ShakeStart();
+	}
+
 	void Update () {
-		
+
+		// update
+		ShakeUpdate();
+		HandleUpdate();
+				
 		// physics based smoothing - cursor move towards target to smoothen out user interaction
 		brush.transform.position = Vector3.Lerp(brush.transform.position, target.position, Time.deltaTime * 10.0f );
 		brush.transform.rotation = Quaternion.Slerp(brush.transform.rotation, target.rotation, Time.deltaTime * 10.0f );
@@ -128,13 +237,6 @@ public class SwatchInputManager : MonoBehaviour {
 			MetaioSDKUnity.startInstantTracking("INSTANT_3D", "");
 		}
 
-		if (GUI.Button(new Rect(10,100,100,80), "UNDO")) {
-			//if(lines.Count>0) { 
-			//	Ribbon3d line = lines[lines.Count-1];
-			//	lines.RemoveAt(lines.Count-1);
-			//	line.destroy();
-			//}
-		}
 	}	
 }
 
@@ -142,46 +244,54 @@ public class SwatchInputManager : MonoBehaviour {
 /*
 
 Small
-	- shake to undo
-	- get rid of the track button - auto track after a while
-	- test constant delauny
-	- larger buttons
-	- rotate buttons 
 
-Swatch Appearance
+- buttons: animation could be better for buttons
+- buttons: maybe keep indicating current selection
+- buttons: should be labelled or new better art
+- buttons: there are curious grainy glitches on them
 
+- do we really need the center of brush attached to the camera now?
 
-	- support a swatch type
-		- it would be fabulous to support a 1 element swatch style with a ui draw
-		- affine textures
-		- 2d drawing option
+< test undo and shake undo
 
-	- support minecraft
-	
-	- smoke, fog, lights, etc
+- tracker: have some other tracker modes?
+- tracker: have tracker be a button now?
 
-	- try vary line by speed
+Larger
+
+- I still don't have a sense of "where I am" when painting; need to try different kinds of ideas to provide a sense of working plane
+
+- Arguably the ribbon should rotate to face the direction of travel; does this mean I should be doing 2d bevels also then? on a plane?
+  Maybe this can be a separate mode of ribbon since we would lose the cursive quality
+  Shadows also may be optional
+  And ribbon width should vary by speed
+
+- Try a block style
+
+- Smoke, Fog, Lights, Sparklers
 
 UX
-			
-	<- support various colors using 3d buttons
+
+	- get rid of the track button - auto track after a while?
+	- test constant delauny
 	
 	- debate having hard shadows on or off... could be a user option
 
 	- save
-	
 	- undo
-	
 	- clear
-
 	- fatness
-	
-	- games
-	
+	- speed games
 	- multiplayer
-
-	- publish
-		
+	- publish		
 	- main menu showing all files
+	- website using webgl showing art off
+
+Release
+
+	- video
+	- bug tracker
+	- clean up source
+	- hashtag, url etc
 
 */

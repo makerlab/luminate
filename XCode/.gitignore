@@ -5,9 +5,13 @@
 #
 #    15564624 - what does the xccheckout file in Xcode5 do? Where's the documentation?
 #
-# Version 2.1
+# Version 2.3
 # For latest version, see: http://stackoverflow.com/questions/49478/git-ignore-file-for-xcode-projects
 #
+# 2014 updates:
+# - appended non-standard items DISABLED by default (uncomment if you use those tools)
+# - removed the edit that an SO.com moderator made without bothering to ask me
+# - researched CocoaPods .lock more carefully, thanks to Gokhan Celiker
 # 2013 updates:
 # - fixed the broken "save personal Schemes"
 # - added line-by-line explanations for EVERYTHING (some were missing)
@@ -34,14 +38,18 @@
 
 *.swp
 
+#
 # *.lock - this is used and abused by many editors for many different things.
 #    For the main ones I use (e.g. Eclipse), it should be excluded 
-#    from source-control, but YMMV
+#    from source-control, but YMMV.
+#   (lock files are usually local-only file-synchronization on the local FS that should NOT go in git)
+# c.f. the "OPTIONAL" section at bottom though, for tool-specific variations!
 
 *.lock
 
+
 #
-# profile - REMOVED temporarily (on double-checking, this seems incorrect; I can't find it in OS X docs?)
+# profile - REMOVED temporarily (on double-checking, I can't find it in OS X docs?)
 #profile
 
 
@@ -159,15 +167,44 @@ xcuserdata
 *.moved-aside
 
 ####
-# Xcode 5 - VCS file
-# The data in this file not represent state of your project.
-# If you'll leave this file in git - you will have merge conflicts during 
-# pull your cahnges to other's repo
+# OPTIONAL: Some well-known tools that people use side-by-side with Xcode / iOS development
 #
-*.xccheckout
+# NB: I'd rather not include these here, but gitignore's design is weak and doesn't allow
+#     modular gitignore: you have to put EVERYTHING in one file.
+#
+# COCOAPODS:
+#
+# c.f. http://guides.cocoapods.org/using/using-cocoapods.html#what-is-a-podfilelock
+# c.f. http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control
+#
+#!Podfile.lock
+#
+# RUBY:
+#
+# c.f. http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
+#
+#!Gemfile.lock
+#
+# IDEA:
+#
+#.idea
+#
+# TEXTMATE:
+#
+# -- UNVERIFIED: c.f. http://stackoverflow.com/a/50283/153422
+#
+#tm_build_errors
 
 ####
 # UNKNOWN: recommended by others, but I can't discover what these files are
 #
-# ...none. Everything is now explained.
+# Community suggestions (unverified, no evidence available - DISABLED by default)
+#
+# 1. Xcode 5 - VCS file
+#
+# "The data in this file not represent state of your project.
+# If you'll leave this file in git - you will have merge conflicts during 
+# pull your cahnges to other's repo"
+#
+#*.xccheckout
 

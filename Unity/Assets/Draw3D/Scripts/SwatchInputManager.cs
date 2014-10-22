@@ -130,10 +130,10 @@ public class SwatchInputManager : MonoBehaviour {
 		Debug.Log ("Finished " + focus );
 		if(focus==null) return;
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
+		focus = null;
 		if(art.paintFinish() == false) {
 			Destroy(art);
 		}
-		focus = null;
 	}
 
 	// ----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ public class SwatchInputManager : MonoBehaviour {
 		Screen.orientation = ScreenOrientation.LandscapeLeft;
 		ShakeStart();
 
-		test();	
+		// test();	
 	}
 
 	void test() {
@@ -243,87 +243,3 @@ public class SwatchInputManager : MonoBehaviour {
 
 }
 
-/*
-
-Things to try out,
-
-bugs
-
-< - almost certainly need do massively reduce point count in tubes and in general
-
-revise ui:
-	[] paint with a swatch
-	[] paint with a brush
-	[] paint with a neon
-	[] freeze the drawing plane; perhaps also letting you rotate it with your finger even???
-	[] move the sun
-	[] erase with finger or tip ( anything touched gets erased with some touch latency
-
-	< make a neon 4h
-	< increase the delta for minimum movement and make the beam tip keep recycling the current end rather than rejecting? 1h
-	< multi segment swatches 2h
-	< smaller swatches? somehow control the size 2h
-	< uv stretched swatches 2h
-	< try make a main menu? 8h
-	< try a blockworld? 8h
-	< have ribbonizer do 2d curves support - https://www.assetstore.unity3d.com/en/#!/content/20272
-
-To try
-
-	- gridding or snap to nearest line?
-	- arguably we could have a freezeable drawing plane not always orthogonal to the camera....? thoughts?	
-	- maybe we could show the drawing plane as a semi-transparent div while drawing so that it helps you guage context?
-			( i tried this before and it basically was just a box on the screen facing the camera so it was boring... try again?)
-			
-	- maybe semi transparent paint color is a good idea?
-	< having a ball shadow on the ground would help
-
-Other pen tips?
-
-	- is it worth trying to get the standard assets bloom glow running on ios? can it run? is it fast enough?
-	- is vectrosity worth looking at again to see if they've dealt with 3d lines better?
-- Try a block style
-- Smoke, Fog, Lights, Sparklers
-- Shadows also may be optional
-- And ribbon width should vary by speed
-
-Small Issues,
-
-	- buttons: animation could be better for buttons
-	- buttons: maybe keep indicating current selection
-	- buttons: should be labelled or new better art
-	- tracker: have some other tracker modes?
-	- tracker: have tracker be a button now?
-
-SPATIAL SENSE PROBLEM:
-
-- I still don't have a sense of "where I am" when painting; need to try different kinds of ideas to provide a sense of working plane
-
-- Arguably the ribbon should rotate to face the direction of travel; does this mean I should be doing 2d bevels also then? on a plane?
-  Maybe this can be a separate mode of ribbon since we would lose the cursive quality
- 
-UX
-
-	- get rid of the track button - auto track after a while?
-	- test constant delauny
-	
-	- debate having hard shadows on or off... could be a user option?
-
-	- save
-	- undo
-	- clear
-	- fatness
-	- speed games
-	- multiplayer
-	- publish		
-	- main menu showing all files
-	- website using webgl showing art off
-
-Release
-
-	- video
-	- bug tracker
-	- clean up source
-	- hashtag, url etc
-
-*/

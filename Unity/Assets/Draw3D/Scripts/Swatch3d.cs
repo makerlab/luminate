@@ -20,6 +20,18 @@ using System.Collections.Specialized;
 //	  - affine textures need to be dealt with; possibly a custom shader
 //	  - may want to write custom shaders for ios to do glow effects more nicely
 //
+//
+// notes
+//	
+// drawing a fat line in 2d requires handling sharp corners elegantly - we don't need this yet... it is arguably useful
+// there are some examples of tube and ribbon renderers in unity asset store as an option but i want everything to be freely reusable
+// https://www.shadertoy.com/view/4sjXzG <- could use a shader instead? arguably has utility also
+// acko.net has some beautiful work also
+// see http://www.codeproject.com/Articles/226569/Drawing-polylines-by-tessellation
+// and https://gist.github.com/anselm/1474156
+// https://www.mapbox.com/blog/drawing-antialiased-lines/
+// paul o'rourke had a great example - not visible on the net anymore
+//
 
 public class Swatch3d: MonoBehaviour {
 	
@@ -34,6 +46,7 @@ public class Swatch3d: MonoBehaviour {
 		CURSIVE_SINGLE_SIDED,
 		CURSIVE_DOUBLE_SIDED,
 		SWATCH,
+		TUBE,
 		//BOX,
 		//PRISM,
 		//GLOW,
@@ -74,6 +87,12 @@ public class Swatch3d: MonoBehaviour {
 			IncrementalDouglasPeucker = false;
 		}
 		
+		if(style == STYLE.TUBE) {
+			EnableShadows = false;
+			EnableBottom = false;
+			initTubeHelper();
+		}
+		
 		// Set materials supplied else use default else crash
 		if(_material != null) mainMaterial = _material;
 		if(_shadowMaterial !=null) shadowMaterial = _material;
@@ -111,6 +130,31 @@ public class Swatch3d: MonoBehaviour {
 			shadow.renderer.material = shadowMaterial;
 			shadowMesh = shadow.GetComponent<MeshFilter>().mesh;
 		}
+		
+	}
+
+	public void test() {
+		Vector3 xyz;
+		Vector3 forward = Vector3.forward;
+		Vector3 right = Vector3.right;
+		float width = 10.0f;
+		
+		xyz = Vector3.zero;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 40;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 200;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 300;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 350;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 400;
+		paintConsider(xyz,forward,right,width);
+		xyz = Vector3.up * 100 + Vector3.right * 450;
+		paintConsider(xyz,forward,right,width);
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------
@@ -118,6 +162,7 @@ public class Swatch3d: MonoBehaviour {
 	// accumulated user input describing users drawing action through 3d space
 	public List<Vector3> points = new List<Vector3>();
 	public List<Vector3> rights = new List<Vector3>();
+	public List<Vector3> forwards = new List<Vector3>();
 	public List<float> velocities = new List<float>();
 
 	// produced collections of vertices in a form that lets me incrementally extend the set
@@ -159,6 +204,7 @@ public class Swatch3d: MonoBehaviour {
 
 			points.Add(xyz);
 			rights.Add(right);
+			forwards.Add(forward);
 			velocities.Add(width);
 		}
 
@@ -205,48 +251,153 @@ public class Swatch3d: MonoBehaviour {
 		
 		// produce intermediate vertices and triangles for any new points (ones marked dirty)
 		for(int i = cleanIndex; i < points.Count;i++) {
-			paintToGeometry2(points[i],rights[i],velocities[i]);
+			if(style == STYLE.TUBE) {
+				paintToTubeIntermediateRepresentation(i);
+			} else {
+				paintToRibbonIntermediateRepresentation(i);
+			}
 		}
-
 		cleanIndex = points.Count;
 
-		paintToGeometry3(compress);
+		// make unity art
+		paintToUnity3DRepresentation(compress);
 
 		return true;
 	}
 
-	float uvx = 0;
+	public void paintToRibbonIntermediateRepresentation(int p) {
 
-	public void paintToGeometry2(Vector3 point, Vector3 right, float width) {
-
-		// give the line dimensionality perpendicular to axis of travel...
+		Vector3 point = points[p];
+		Vector3 right = rights[p];
+		float width = velocities[p];
+		
+		// verts
 		vertices.Add ( point - right * width );
 		vertices.Add ( point + right * width );
 
-		// NOTE for now UV's don't matter much but we'll have to refine the technique when supporting materials
-		// TODO deal with affine textures or don't share vertices between triangles
-		// TODO deal with different kinds of UV scales; sometimes we want world scale sometimes we want use an object scale
-		// http://forum.unity3d.com/threads/correcting-affine-texture-mapping-for-trapezoids.151283/
-		uvs.Add(new Vector2(0,uvx));
-		uvs.Add(new Vector2(1.0f,uvx));
-		uvx += 1.0f;
+		// uvs
+		uvs.Add(new Vector2(0,0));
+		uvs.Add(new Vector2(1.0f,0));
 
-		// attach triangles
-		// NOTE multiple triangles share vertex normals so lighting and shadows are not fully discrete and will be softer
-		if(vertices.Count >= 4) {
+		// tris
+		if(p>0) {
 			int j = vertices.Count - 4;
 			triangles.Add(j+0); triangles.Add(j+1); triangles.Add (j+2);
 			triangles.Add(j+1); triangles.Add(j+3); triangles.Add (j+2);
 		}
 	}
 
-	public void paintToGeometry3(bool optimize=false) {
+	const int crossSegments = 8;
+	static Vector3[] crossPoints;
+	static Quaternion rot = Quaternion.identity;
+	int endCapVerts = 0;
+	int endCapTris = 0;
+
+	public void initTubeHelper() {
+		crossPoints = new Vector3[crossSegments];
+		float theta = 2.0f*Mathf.PI/crossSegments;
+		for (int c=0;c<crossSegments;c++) {
+			crossPoints[c] = new Vector3(Mathf.Cos(theta*c), Mathf.Sin(theta*c), 0);
+		}
+	}
+
+	// this is from http://wiki.unity3d.com/index.php?title=TubeRenderer
+	public void paintToTubeIntermediateRepresentation(int p) {
+	
+		// wait till we have enough data to do something useful
+		if(p == 0) {
+			return;
+		}
+
+		Vector3 point = points[p];
+		Vector3 prev = points[p-1];
+		Vector3 forward = forwards[p];
+		const float capsize = 5.0f;
+		Vector3 dir = (point-prev).normalized;
+		float width = velocities[p];
+
+		// get rotation of this segment
+		rot = Quaternion.FromToRotation(Vector3.forward,point-prev);
+
+		// inject a start cap
+		if(p == 1) {
+			for(float i = 0; i < capsize; i++) {
+				float width2 = Mathf.Sin(Mathf.PI/2*i/capsize) * width;
+				float height = Mathf.Cos(Mathf.PI/2*i/capsize) * width;
+				for (int j=0;j<crossSegments;j++) {
+					vertices.Add ( prev + rot * crossPoints[j] * width2 - dir * height );
+					uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
+					if(j==0)continue;
+					int c = p*crossSegments+j;
+					int d = p*crossSegments+((j+1)%crossSegments);
+					int a = c-crossSegments;
+					int b = d-crossSegments;
+					triangles.Add(c); triangles.Add(a); triangles.Add(b);
+					triangles.Add(c); triangles.Add(b); triangles.Add(d);
+				}
+			}			
+		}
+
+		// remove the end cap
+		if(endCapVerts>0) {
+			vertices.RemoveRange(endCapVerts,vertices.Count-endCapVerts);
+			uvs.RemoveRange(endCapVerts,vertices.Count-endCapVerts);
+			triangles.RemoveRange(endCapTris,triangles.Count-endCapTris);
+		}
+
+		// verts
+		for (int j=0;j<crossSegments;j++) {
+			vertices.Add ( point + rot * crossPoints[j] * width );
+			uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
+		}
+
+		// triangles
+		for (int j=0;p > 0 && j<crossSegments;j++) {
+			int c = p*crossSegments+j;
+			int d = p*crossSegments+((j+1)%crossSegments);
+			int a = c-crossSegments;
+			int b = d-crossSegments;
+			triangles.Add(c); triangles.Add(a); triangles.Add(b);
+			triangles.Add(c); triangles.Add(b); triangles.Add(d);
+		}
+
+		// add the end cap back on
+		if(p == 7) {
+			endCapVerts = vertices.Count;
+			endCapTris = triangles.Count;
+			for(float i = 1; i < capsize; i++) {
+				float width2 = 10; //Mathf.Cos(Mathf.PI/2*i/capsize) * width * 10;
+				float height = 19; // Mathf.Sin(Mathf.PI/2*i/capsize) * width * 10;
+				for (int j=0;j<crossSegments;j++) {
+					vertices.Add ( point + rot * crossPoints[j] * width2 + dir * height );
+					uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
+					int c = p*crossSegments+j;
+					int d = p*crossSegments+((j+1)%crossSegments);
+					int a = c-crossSegments;
+					int b = d-crossSegments;
+					triangles.Add(c); triangles.Add(a); triangles.Add(b);
+					triangles.Add(c); triangles.Add(b); triangles.Add(d);
+					Debug.Log (" added " + a );
+				}
+			}
+		}
+	}
+
+	public void paintToUnity3DRepresentation(bool optimize=false) {
 
 		// NOTE due to limits of C# and Unity we are forced to remake the mesh from scratch; cannot use static large arrays
+		// NOTE it would be nice to have a static vertex or uv pool for intermediate representation rather than reallocating...
 
 		Vector3[] v = vertices.ToArray();
 		Vector2[] uv = uvs.ToArray();
 		int[] tri = triangles.ToArray();
+		
+		// patch uv to be a single 0 to 1 span along length
+		if(true) {
+			for(int i = 0; i < uv.Length; i++) {
+				uv[i][1] = ((float)i)/((float)uv.Length);
+			}
+		}
 
 		if(true) {
 			// Build top side of ribbon as a geometry
@@ -283,161 +434,6 @@ public class Swatch3d: MonoBehaviour {
 			if(optimize) shadowMesh.Optimize();
 		}	
 	}
-
-	
-	//--------------------------------------------------------------------------------------------------------------------------
-	//
-	// notes
-	//	
-	// drawing a fat line in 2d requires handling sharp corners elegantly
-	// see http://www.codeproject.com/Articles/226569/Drawing-polylines-by-tessellation
-	// and https://gist.github.com/anselm/1474156
-	// https://www.mapbox.com/blog/drawing-antialiased-lines/
-	//
-	
-	/* obsolete
-	public void pointToGeometry(Vector3 point, Vector3 up, Vector3 right, float width, Color c) {
-		
-		int shape = 0;
-		bool isNew = vertices.Count > 0 ? false : true;
-		int j = 0;
-
-		Vector3 v1,v2,v3,v4;
-		Vector2 u1,u2,u3,u4;
-		
-		switch(shape) {
-		case 0:
-			// calligraphy - a zero thickness ribbon
-			v1 = point - right * width; // transform.TransformPoint(new Vector3 (-width, 0, 0)) ; // to the left
-			v2 = point + right * width; //transform.TransformPoint(new Vector3 ( width, 0, 0)) ; // to the right
-			vertices.Add ( v1 );
-			vertices.Add ( v2 );
-			normals.Add (up * -1 );
-			normals.Add (up * -1 );
-			u1 = new Vector2(-1,uvx); // we grow along the axis
-			u2 = new Vector2(1,uvx);
-			uvx += 0.5f;
-			uvs.Add (u1);
-			uvs.Add (u2);
-			colors.Add( c );
-			colors.Add( c );
-			if(!isNew) {
-				j = vertices.Count - 6;
-				triangles.Add(j+0); triangles.Add(j+1); triangles.Add (j+4);
-				triangles.Add(j+1); triangles.Add(j+5); triangles.Add (j+4);
-			}
-
-			// bottom has to be separate vertices for normals to work sigh
-			vertices.Add ( v1 );
-			vertices.Add ( v2 );
-			normals.Add (up);
-			normals.Add (up);
-			uvs.Add (u1);
-			uvs.Add (u2);
-			colors.Add( c );
-			colors.Add( c );
-			if(!isNew) {
-				j = vertices.Count - 6;
-				triangles.Add(j+0); triangles.Add(j+4); triangles.Add (j+1);
-				triangles.Add(j+1); triangles.Add(j+4); triangles.Add (j+5);
-			}
-			break;
-		case 1:
-			// a prism
-			v1 = point - right * width; // transform.TransformPoint(new Vector3 (-width, 0, 0));
-			v2 = point + right * width; // transform.TransformPoint(new Vector3 ( width, 0, 0));
-			v3 = point + up * width; //  transform.TransformPoint(new Vector3 ( 0, width, 0 ));
-			vertices.Add ( v1 );
-			vertices.Add ( v2 );
-			vertices.Add ( v3 );
-			normals.Add (up); // XXX wrong
-			normals.Add (up);
-			normals.Add (up);
-			u1 = new Vector2(uvx,0);
-			u2 = new Vector2(uvx,0.5f);
-			u3 = new Vector2(uvx,1);
-			uvx += 0.1f; if(uvx>1)uvx=0;
-			uvs.Add ( u1 );
-			uvs.Add ( u2 );
-			uvs.Add ( u3 );
-			colors.Add( c );
-			colors.Add( c );
-			colors.Add( c );
-			j = vertices.Count - 6;
-			if(vertices.Count < 6) {
-				//				triangles.Add(0); triangles.Add(1); triangles.Add (2);
-				//				triangles.Add(0); triangles.Add(1); triangles.Add (2);
-				break;
-			}
-			
-			//			triangles.RemoveAt (triangles.Count-1);
-			//			triangles.RemoveAt (triangles.Count-1);
-			//			triangles.RemoveAt (triangles.Count-1);
-			
-			triangles.Add(j+0); triangles.Add(j+4); triangles.Add (j+1);
-			triangles.Add(j+0); triangles.Add(j+3); triangles.Add (j+4);
-			triangles.Add(j+1); triangles.Add(j+5); triangles.Add (j+2);
-			triangles.Add(j+1); triangles.Add(j+4); triangles.Add (j+5);
-			triangles.Add(j+2); triangles.Add(j+3); triangles.Add (j+0);
-			triangles.Add(j+2); triangles.Add(j+5); triangles.Add (j+3);
-			
-			//			triangles.Add(j+3); triangles.Add(j+5); triangles.Add (j+4);
-			
-			break;
-		case 2:
-			// a cube
-			v1 = point + (-right -up) * width; // transform.TransformPoint(new Vector3 (-width,-width, 0));
-			v2 = point + ( right -up) * width; // transform.TransformPoint(new Vector3 ( width,-width, 0));
-			v3 = point + (-right +up) * width; // transform.TransformPoint(new Vector3 (-width, width, 0 ));
-			v4 = point + (right + up) * width; // transform.TransformPoint(new Vector3 ( width, width, 0 ));
-			vertices.Add ( v1 );
-			vertices.Add ( v2 );
-			vertices.Add ( v3 );
-			vertices.Add ( v4 );
-			normals.Add (up); // XXX wrong
-			normals.Add (up);
-			normals.Add (up);
-			normals.Add (up);
-			u1 = new Vector2(uvx,0);
-			u2 = new Vector2(uvx,1);
-			u3 = new Vector2(uvx,0);
-			u4 = new Vector2(uvx,1);
-			uvx += 0.1f; if(uvx>1)uvx=0;
-			uvs.Add ( u1 );
-			uvs.Add ( u2 );
-			uvs.Add ( u3 );
-			uvs.Add ( u4 );
-			colors.Add( c );
-			colors.Add( c );
-			colors.Add( c );
-			colors.Add( c );
-			j = vertices.Count - 8;
-			if(vertices.Count < 8) {
-				//triangles.Add(0); triangles.Add(1); triangles.Add (2);
-				//				triangles.Add(0); triangles.Add(1); triangles.Add (2);
-				break;
-			}
-			
-			//			triangles.RemoveAt (triangles.Count-1);
-			//			triangles.RemoveAt (triangles.Count-1);
-			//			triangles.RemoveAt (triangles.Count-1);
-			
-			triangles.Add(j+0); triangles.Add(j+5); triangles.Add (j+1);
-			triangles.Add(j+0); triangles.Add(j+4); triangles.Add (j+5);
-			triangles.Add(j+1); triangles.Add(j+5); triangles.Add (j+7);
-			triangles.Add(j+1); triangles.Add(j+7); triangles.Add (j+3);
-			triangles.Add(j+3); triangles.Add(j+7); triangles.Add (j+6);
-			triangles.Add(j+3); triangles.Add(j+6); triangles.Add (j+2);
-			triangles.Add(j+2); triangles.Add(j+6); triangles.Add (j+4);
-			triangles.Add(j+2); triangles.Add(j+4); triangles.Add (j+0);
-			
-			//triangles.Add(j+3); triangles.Add(j+5); triangles.Add (j+4);
-			
-			break;
-		}
-		
-	}
-	*/
 	
 	//--------------------------------------------------------------------------------------------------------------------------
 	// https://github.com/mourner/simplify-js/blob/3d/simplify.js
@@ -572,14 +568,17 @@ public class Swatch3d: MonoBehaviour {
 		
 		List<Vector3> points2 = new List<Vector3>();
 		List<Vector3> rights2 = new List<Vector3>();
+		List<Vector3> forwards2 = new List<Vector3>();
 		List<float> velocities2 = new List<float>();			
 		foreach (int i in pointIndexsToKeep) {
 			points2.Add(points[i]);
 			rights2.Add(rights[i]);
+			forwards2.Add(forwards[i]);
 			velocities2.Add(velocities[i]);
 		}
 		points = points2;
 		rights = rights2;
+		forwards = forwards2;
 		velocities = velocities2;
 		
 		//Debug.Log ("Number of points after system was " + points.Count );
@@ -607,3 +606,6 @@ public class Swatch3d: MonoBehaviour {
 	}
 	
 };
+
+
+

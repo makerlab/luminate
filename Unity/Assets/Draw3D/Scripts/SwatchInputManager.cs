@@ -11,24 +11,26 @@ public class SwatchInputManager : MonoBehaviour {
 	// A concept of a physical brush that chases an idealized target to smooth out line drawing
 	public Transform brush;
 	public Transform target;
+	public Light sunlight;
 	
 	// Shared state for drawable things
 	public GameObject prefabSwatch;
 	public Color color = Color.green;
 	public Material material;
-	Swatch3d.STYLE style = Swatch3d.STYLE.SWATCH;
+	Swatch3d.STYLE style = Swatch3d.STYLE.TUBE;
 	public float DrawSizeDefault = 8.0f;
-
+	
 	// current focus of drawing
 	GameObject focus;
+	bool ignoreFingerPosition = false;
 	
 	// ----------------------------------------------------------------------------
 	
 	void SetMaterial(Material m) {
 		material = Object.Instantiate(m) as Material;
 		material.color = color;		
-		brush.renderer.material = m;
-		target.renderer.material = m;
+		brush.renderer.material = material;
+		target.renderer.material = material;
 	}
 
 	void SetColor(Color c) {
@@ -67,12 +69,12 @@ public class SwatchInputManager : MonoBehaviour {
 				case "Palette6": SetColor(hit.transform.gameObject.renderer.material.color); return true;
 				case "Swatch1":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
 				case "Swatch2":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
-				case "SaveExit": break;
-				case "Sunlight": break;
+				case "Track": 	 Track(); return true;
+				case "Sunlight": SetSunPosition(); return true;
 				case "Undo":     Undo(); return true;
-				case "Redo":     break;
 				case "Ribbon":   style = Swatch3d.STYLE.CURSIVE_DOUBLE_SIDED; return true;
 				case "Swatch":   style = Swatch3d.STYLE.SWATCH; return true;
+				case "SaveExit": SaveAndExit(); return true;
 				default: break;
 			}
 		}
@@ -81,13 +83,19 @@ public class SwatchInputManager : MonoBehaviour {
 
 	void HandleDown(Vector3 input) {
 
-		// block out 2d gui button area for now
-		// TODO remove when we remove track gui button
-		if(input.x < 100 && input.y < 100) return;
-
 		// check for 3d in world button events
 		if(HandleButtons(input)) {
 			return;
+		}
+
+		// ignore finger position if you are painting in the right corner
+		if( (input.x > Screen.width - 100) && (input.y < 100)) {
+			brush.gameObject.SetActive (true);
+			brush.position = target.position;
+			ignoreFingerPosition = true;
+		} else {
+			brush.gameObject.SetActive (true);
+			ignoreFingerPosition = false;
 		}
 
 		// start new art
@@ -104,43 +112,21 @@ public class SwatchInputManager : MonoBehaviour {
 
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
 
-/*
-		Ray ray = camera.ScreenPointToRay(input);
-		Plane plane = new Plane(brush.transform.up, xyz);
-		float distance = 0; // this will return the distance from the camerass
-		if (plane.Raycast(ray, out distance)){ // if plane hit...
-			Debug.Log ("a hit at " + ray.GetPoint (distance));
-		} else {
-			Debug.Log ("NO HIT");
-		}
-		
-		Debug.Log ("is at " + xyz);
-
-
-		art.paintSetRay(ray);
-
-		Plane plane = new Plane(Vector3.up, Vector3.zero);
-		float distance = 0; // this will return the distance from the camerass
-		if (plane.Raycast(ray, out distance)){ // if plane hit...
-			Debug.Log ("hit at " + ray.GetPoint (distance));
-		}
-
-		input.z = 300.0f;
-		 ray = camera.ScreenPointToRay(input);
-		art.paintSetRay(ray);
-		Debug.Log ("ray is " + ray );
-*/
 		Vector3 xyz = brush.transform.position;
 		Vector3 right = brush.transform.right;
 		Vector3 forward = brush.transform.forward;
-		input.z = 400;
-		Vector3 point = Camera.main.ScreenToWorldPoint(input);
-		xyz = point;
+		
+		if(ignoreFingerPosition == false) {
+			// If the user is moving their finger around then use that as a draw hint
+			input.z = 400;
+			xyz = brush.position = Camera.main.ScreenToWorldPoint(input);
+		}
 
 		art.paintConsider(xyz,forward,right,DrawSizeDefault);
 	}
 
 	void HandleUp() {
+		brush.gameObject.SetActive(false);
 		Debug.Log ("Finished " + focus );
 		if(focus==null) return;
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
@@ -192,6 +178,22 @@ public class SwatchInputManager : MonoBehaviour {
 		material = Object.Instantiate(material) as Material;
 		Screen.orientation = ScreenOrientation.LandscapeLeft;
 		ShakeStart();
+
+		test();	
+	}
+
+	void test() {
+	
+		focus = Instantiate(prefabSwatch) as GameObject;
+		focus.transform.parent = this.transform;
+		
+		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
+		art.setup(color,style,material);
+		
+		art.test ();
+		
+		focus = null;
+	
 	}
 
 	void Update () {
@@ -227,55 +229,85 @@ public class SwatchInputManager : MonoBehaviour {
 		}		
 	}
 	
-	void SetColor(HSBColor color) {
-		this.color = color.ToColor();
+	void Track() {
+		MetaioSDKUnity.startInstantTracking("INSTANT_3D", "");
 	}
 
-	void OnGUI() {
+	void SetSunPosition() {
+		// do it
+		sunlight.transform.rotation = Camera.main.transform.rotation;
+	}
+	
+	void SaveAndExit() {
+	}
 
-		if(GUI.Button(new Rect(10,10,100,80),"TRACK")) {
-			MetaioSDKUnity.startInstantTracking("INSTANT_3D", "");
-		}
-
-	}	
 }
-
 
 /*
 
-Small
+Things to try out,
 
-- buttons: animation could be better for buttons
-- buttons: maybe keep indicating current selection
-- buttons: should be labelled or new better art
-- buttons: there are curious grainy glitches on them
+bugs
 
-- do we really need the center of brush attached to the camera now?
+< - almost certainly need do massively reduce point count in tubes and in general
 
-< test undo and shake undo
+revise ui:
+	[] paint with a swatch
+	[] paint with a brush
+	[] paint with a neon
+	[] freeze the drawing plane; perhaps also letting you rotate it with your finger even???
+	[] move the sun
+	[] erase with finger or tip ( anything touched gets erased with some touch latency
 
-- tracker: have some other tracker modes?
-- tracker: have tracker be a button now?
+	< make a neon 4h
+	< increase the delta for minimum movement and make the beam tip keep recycling the current end rather than rejecting? 1h
+	< multi segment swatches 2h
+	< smaller swatches? somehow control the size 2h
+	< uv stretched swatches 2h
+	< try make a main menu? 8h
+	< try a blockworld? 8h
+	< have ribbonizer do 2d curves support - https://www.assetstore.unity3d.com/en/#!/content/20272
 
-Larger
+To try
+
+	- gridding or snap to nearest line?
+	- arguably we could have a freezeable drawing plane not always orthogonal to the camera....? thoughts?	
+	- maybe we could show the drawing plane as a semi-transparent div while drawing so that it helps you guage context?
+			( i tried this before and it basically was just a box on the screen facing the camera so it was boring... try again?)
+			
+	- maybe semi transparent paint color is a good idea?
+	< having a ball shadow on the ground would help
+
+Other pen tips?
+
+	- is it worth trying to get the standard assets bloom glow running on ios? can it run? is it fast enough?
+	- is vectrosity worth looking at again to see if they've dealt with 3d lines better?
+- Try a block style
+- Smoke, Fog, Lights, Sparklers
+- Shadows also may be optional
+- And ribbon width should vary by speed
+
+Small Issues,
+
+	- buttons: animation could be better for buttons
+	- buttons: maybe keep indicating current selection
+	- buttons: should be labelled or new better art
+	- tracker: have some other tracker modes?
+	- tracker: have tracker be a button now?
+
+SPATIAL SENSE PROBLEM:
 
 - I still don't have a sense of "where I am" when painting; need to try different kinds of ideas to provide a sense of working plane
 
 - Arguably the ribbon should rotate to face the direction of travel; does this mean I should be doing 2d bevels also then? on a plane?
   Maybe this can be a separate mode of ribbon since we would lose the cursive quality
-  Shadows also may be optional
-  And ribbon width should vary by speed
-
-- Try a block style
-
-- Smoke, Fog, Lights, Sparklers
-
+ 
 UX
 
 	- get rid of the track button - auto track after a while?
 	- test constant delauny
 	
-	- debate having hard shadows on or off... could be a user option
+	- debate having hard shadows on or off... could be a user option?
 
 	- save
 	- undo

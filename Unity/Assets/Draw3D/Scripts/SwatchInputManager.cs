@@ -11,6 +11,8 @@ public class SwatchInputManager : MonoBehaviour {
 	// A concept of a physical brush that chases an idealized target to smooth out line drawing
 	public Transform brush;
 	public Transform target;
+	public Transform choice1;
+	public Transform choice2;
 	public Light sunlight;
 	
 	// Shared state for drawable things
@@ -53,7 +55,15 @@ public class SwatchInputManager : MonoBehaviour {
 		float size = 0.8f + (10.0f-bounce)/50.0f;
 		t.localScale = new Vector3(size,size,size);
 	}
-
+	
+	void SetChoice(GameObject g) {
+		choice1.transform.position = g.transform.position;
+	}
+	
+	void SetChoice2(GameObject g) {
+		choice2.transform.position = g.transform.position;
+	}
+	
 	bool HandleButtons(Vector3 input) {
 		// look for button events
 		Ray ray = Camera.main.ScreenPointToRay(input);
@@ -61,20 +71,21 @@ public class SwatchInputManager : MonoBehaviour {
 		if( Physics.Raycast (ray,out hit) ) {
 			HandleBounce(hit.transform);
 			switch(hit.transform.name) {
-				case "Palette1": SetColor(hit.transform.gameObject.renderer.material.color); return true;
-				case "Palette2": SetColor(hit.transform.gameObject.renderer.material.color); return true;
-				case "Palette3": SetColor(hit.transform.gameObject.renderer.material.color); return true;
-				case "Palette4": SetColor(hit.transform.gameObject.renderer.material.color); return true;
-				case "Palette5": SetColor(hit.transform.gameObject.renderer.material.color); return true;
-				case "Palette6": SetColor(hit.transform.gameObject.renderer.material.color); return true;
+				case "Palette1": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
+				case "Palette2": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
+				case "Palette3": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
+				case "Palette4": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
+				case "Palette5": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
+				case "Palette6": SetColor(hit.transform.gameObject.renderer.material.color); SetChoice(hit.transform.gameObject); return true;
 				case "Swatch1":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
 				case "Swatch2":  SetMaterial(hit.transform.gameObject.renderer.material); return true;
 				case "Track": 	 Track(); return true;
-				case "Sunlight": SetSunPosition(); return true;
-				case "Undo":     Undo(); return true;
-				case "Ribbon":   style = Swatch3d.STYLE.CURSIVE_DOUBLE_SIDED; return true;
-				case "Swatch":   style = Swatch3d.STYLE.SWATCH; return true;
 				case "SaveExit": SaveAndExit(); return true;
+				case "Sun": 	 SetSunPosition(); SetChoice2(hit.transform.gameObject); return true;
+				case "Undo":     Undo(); SetChoice2(hit.transform.gameObject); return true;
+				case "Tube":     style = Swatch3d.STYLE.TUBE; SetChoice2(hit.transform.gameObject); return true;
+				case "Ribbon":   style = Swatch3d.STYLE.CURSIVE_DOUBLE_SIDED; SetChoice2(hit.transform.gameObject); return true;
+				case "Swatch":   style = Swatch3d.STYLE.SWATCH; SetChoice2(hit.transform.gameObject); return true;
 				default: break;
 			}
 		}

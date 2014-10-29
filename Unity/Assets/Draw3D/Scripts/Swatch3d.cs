@@ -67,6 +67,13 @@ public class Swatch3d: MonoBehaviour {
 	Mesh bottomMesh;
 	Mesh shadowMesh;
 
+	// Tube properties - but I will probably move everything over to tubes even if rendering ribbons TODO
+	static Vector3[] crossPoints;
+	static Quaternion rot = Quaternion.identity;
+	int crossSegments = 2;
+	int endCapVerts = 0;
+	int endCapTris = 0;
+	
 	// An index for tracking dirty clean state
 	int cleanIndex = 0;
 
@@ -86,10 +93,16 @@ public class Swatch3d: MonoBehaviour {
 		if(style == STYLE.SWATCH) {
 			EnableShadows = false;
 			IncrementalDouglasPeucker = false;
+			crossSegments = 2;
+		}
+		
+		else if(style == STYLE.CURSIVE_DOUBLE_SIDED ) {
+			crossSegments = 2;
 		}
 		
 		// set a few things for tubes specifically
-		if(style == STYLE.TUBE) {
+		else if(style == STYLE.TUBE) {
+			crossSegments = 8;
 			gameObject.renderer.castShadows = gameObject.renderer.receiveShadows = false;
 			EnableShadows = false;
 			EnableBottom = false;
@@ -308,12 +321,6 @@ public class Swatch3d: MonoBehaviour {
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------
 
-	const int crossSegments = 8;
-	static Vector3[] crossPoints;
-	static Quaternion rot = Quaternion.identity;
-	int endCapVerts = 0;
-	int endCapTris = 0;
-
 	public void initTubeHelper() {
 		crossPoints = new Vector3[crossSegments];
 		float theta = 2.0f*Mathf.PI/crossSegments;
@@ -417,13 +424,29 @@ public class Swatch3d: MonoBehaviour {
 		Vector2[] uv = uvs.ToArray();
 		int[] tri = triangles.ToArray();
 		
-		// patch uv to be a single 0 to 1 span along length
-		if(true) {
-			for(int i = 0; i < uv.Length; i++) {
-				uv[i][1] = ((float)i)/((float)uv.Length);
+		if(style == STYLE.SWATCH) {
+			for(int i = 0; i < uv.Length; i+=crossSegments ) {
+				float percent = ((float)i)/((float)(uv.Length-crossSegments));
+				for(int j = 0; j < crossSegments; j++) {
+					uv[i+j][1] = percent;
+				}
 			}
 		}
 
+		else if(style != STYLE.SWATCH && uv.Length >= 4*crossSegments) {
+			for(int j = 0; j < crossSegments; j++) {
+				uv[0][1] = 0.0f;
+				uv[uv.Length-1][1]=1.0f;
+			}
+			for(int i = 0; i < uv.Length-crossSegments-crossSegments; i+=crossSegments ) {
+				float inset = 0.2f;
+				float percent = ((float)i)/((float)(uv.Length-crossSegments-crossSegments-crossSegments)) * (1.0f-inset-inset) + inset;
+				for(int j = 0; j < crossSegments; j++) {
+					uv[i+j][1] = percent;
+				}
+			}
+		}
+	
 		if(true) {
 			// Build top side of ribbon as a geometry
 			mainMesh.Clear();

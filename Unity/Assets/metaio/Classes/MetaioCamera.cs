@@ -6,13 +6,11 @@ namespace metaio
 	// Called MetaioCamera to avoid naming clash with Unity's internal Camera class (compiler warning)
 	public class MetaioCamera
 	{
-		public enum Facing
-		{
-			UNDEFINED = 0,
-			FRONT = 1,
-			BACK = 2
-		}
-		
+
+		public const int FACE_UNDEFINED = 0;
+		public const int FACE_BACK = 1;
+		public const int FACE_FRONT = 1<<1;
+
 		public const uint FLIP_NONE = 0;
 		public const uint FLIP_VERTICAL = 1;
 		public const uint FLIP_HORIZONTAL = 1<<1;
@@ -30,7 +28,7 @@ namespace metaio
 		
 		public bool yuvPipeline = false;
 		
-		public Facing facing = Facing.UNDEFINED;
+		public int facing = FACE_UNDEFINED;
 		
 		public uint flip = FLIP_NONE;
 
@@ -52,7 +50,7 @@ namespace metaio
 		{
 			MetaioCamera ret = new MetaioCamera();
 			ret.downsample = cam.Downsample;
-			ret.facing = (Facing)cam.Facing;
+			ret.facing = (int)cam.Facing;
 			ret.flip = (uint)cam.Flip;
 			ret.fps = new Vector2d(cam.Fps.X, cam.Fps.Y);
 			ret.friendlyName = cam.FriendlyName;

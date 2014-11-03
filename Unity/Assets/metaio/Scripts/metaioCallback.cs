@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using metaio;
+using metaio.unitycommunication.util;
 
 public class metaioCallback : MonoBehaviour 
 {
@@ -152,29 +153,28 @@ public class metaioCallback : MonoBehaviour
 	
 		if (eventID != EUNITY_CALLBACK_EVENT.EUCE_NONE)
 		{
-			IntPtr eventValuePtr = MetaioSDKUnity.getUnityCallbackEventValue();
-			String eventValue = Marshal.PtrToStringAnsi(eventValuePtr);
+			uint eventValueLength = 0;
+			IntPtr eventValuePtr = MetaioSDKUnity.getUnityCallbackEventValue(out eventValueLength);
 
 //			Debug.Log("Callback event: "+eventID+", "+eventValue);
 			
 			switch (eventID)
 			{
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG:
-					onLog(eventValue);
+					onLog(Marshal.PtrToStringAnsi(eventValuePtr));
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG_WARNING:
-					onLogWarning(eventValue);
+					onLogWarning(Marshal.PtrToStringAnsi(eventValuePtr));
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG_ERROR:
-					onLogError(eventValue);
+					onLogError(Marshal.PtrToStringAnsi(eventValuePtr));
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_SDK_READY:
 					onSDKReady();
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_TRACKING_EVENT:
-					uint length = MetaioSDKUnity.getUnityCallbackEventValueLength();	
-					byte[] pbAsBytes = new byte[length];
-					Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)length);
+					byte[] pbAsBytes = new byte[eventValueLength];
+					Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)eventValueLength);
 					metaio.unitycommunication.OnTrackingEventProtocol prot = metaio.unitycommunication.OnTrackingEventProtocol.ParseFrom(pbAsBytes);
 					List<TrackingValues> listTV = new List<TrackingValues>();
 					for (int i = 0; i < prot.TrackingValuesCount; ++i)
@@ -184,19 +184,19 @@ public class metaioCallback : MonoBehaviour
 					onTrackingEvent(listTV);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_INSTANT_TRACKING_EVENT:
-					onInstantTrackingEvent(eventValue);
+					onInstantTrackingEvent(eventValuePtr.MarshalToStringUTF8());
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_CAMERA_IMAGE_SAVED:
-					onCameraImageSaved(eventValue);
+					onCameraImageSaved(eventValuePtr.MarshalToStringUTF8());
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_VISUAL_SEARCH_RESULT:
-					parseVisualSearchResponse(eventValue);
+					parseVisualSearchResponse(eventValuePtr, eventValueLength);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_VISUAL_SEARCH_STATUS:
-					onVisualSearchStatusChanged(eventValue);
+					onVisualSearchStatusChanged(Marshal.PtrToStringAnsi(eventValuePtr));
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_MOVIE_END:
-					IntPtr movieTextureGeometryPtr = new IntPtr(int.Parse(eventValue));
+					IntPtr movieTextureGeometryPtr = new IntPtr(int.Parse(Marshal.PtrToStringAnsi(eventValuePtr)));
 					onMovieEnd(metaioMovieTexture.getGameObjectNameForMovieTextureGeometryPtr(movieTextureGeometryPtr));
 					break;
 			}
@@ -206,32 +206,19 @@ public class metaioCallback : MonoBehaviour
 		}
 	}
 	
-	private void parseVisualSearchResponse(String eventValue)
+	private void parseVisualSearchResponse(IntPtr eventValuePtr, uint eventValueLength)
 	{
-//		Debug.Log ("parseVisualSearchResponse: "+eventValue);
+		byte[] pbAsBytes = new byte[eventValueLength];
+		Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)eventValueLength);
+		metaio.unitycommunication.OnVisualSearchResultProtocol pb = metaio.unitycommunication.OnVisualSearchResultProtocol.ParseFrom(pbAsBytes);
 		
-		string[] tokens = eventValue.Split("|"[0]);
-		
-//		Debug.Log ("parseVisualSearchResponse: tokens count "+tokens.Length);
-		
-		if (tokens.Length < 2)
-			return;
-		
-		int errorCode = Int32.Parse(tokens[0]);
-		int responseCount = Int32.Parse(tokens[1]);
-		
-		VisualSearchResponse[] response = new VisualSearchResponse[responseCount];
-		
-//		Debug.Log ("parseVisualSearchResponse: "+responseCount);
-		
-		int j = 2;
-		for (int i=0; i<responseCount; i++)
+		VisualSearchResponse[] responses = new VisualSearchResponse[pb.ResponsesCount];
+		for (int i = 0; i < pb.ResponsesCount; ++i)
 		{
-			response[i].TrackingConfigurationName = tokens[j++];
-			response[i].TrackingConfiguration = tokens[j++];			
+			responses[i] = VisualSearchResponse.FromPB(pb.ResponsesList[i]);
 		}
-		
-		onVisualSearchResult(response, errorCode);
+
+		onVisualSearchResult(responses, pb.ErrorCode);
 	}
 	
 #endregion

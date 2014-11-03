@@ -26,16 +26,49 @@ public class metaioDeviceCamera : MonoBehaviour
 	private uint currentTextureSize = 0;
 	
 	private Texture2D texture;
-	
+
+	private bool _seeThroughEnabled = false;
+	internal bool seeThroughEnabled
+	{
+		get
+		{
+			return _seeThroughEnabled;
+		}
+		set
+		{
+			_seeThroughEnabled = value;
+			
+			// As noted in Update(), *this* script may not be disabled/removed, so in case of see-through mode, we tell the
+			// SDK to stop writing to the camera texture (which can be released if already created), and disable rendering
+			// the camera image plane.
+			MetaioSDKUnity.setSeeThrough(_seeThroughEnabled ? 1 : 0);
+		}
+	}
+
 	void Awake()
 	{
 		MetaioSDKUnity.deviceCamera = this;
 	}
 	
-	// Use this for initialization
-	void Start () 
+	private IEnumerator CallPluginAtEndOfFrames()
 	{
+		while (true)
+		{
+			// Wait until all frame rendering is done
+			yield return new WaitForEndOfFrame();
+
+			// Note that the following call triggers the tracking in the SDK, so you must not disable/remove *this* script!
+			#if UNITY_IPHONE
+				MetaioSDKUnity.UnityRenderEvent(textureID);
+			#else
+				GL.IssuePluginEvent(textureID);
+			#endif
+		}
+	}
 	
+	// Use this for initialization
+	IEnumerator Start() 
+	{
 		Camera cam = GetComponent(typeof(Camera)) as Camera;
 		cam.orthographic = true;
 		
@@ -47,7 +80,11 @@ public class metaioDeviceCamera : MonoBehaviour
 		screenOrientation = ScreenOrientation.Unknown;
 		screenSize.x = 0;
 		screenSize.y = 0;
+
+		// Ensure settings are applied
+		seeThroughEnabled = _seeThroughEnabled;
 		
+		yield return StartCoroutine("CallPluginAtEndOfFrames");
 	}
 
 	// Update is called once per frame
@@ -70,16 +107,6 @@ public class metaioDeviceCamera : MonoBehaviour
 		{
 			updateCameraPlaneScale();
 		}
-		
-		// TODO: GL.IssuePluginEvent should be used on all platforms,
-		// but in Unity 3.5.x, the callbacks in the native plugin are
-		// never called. Check if they work in Unity 4.x.
-#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX || UNITY_EDITOR
-		GL.IssuePluginEvent(textureID);
-#elif UNITY_ANDROID || UNITY_IPHONE
-		MetaioSDKUnity.UnityRenderEvent(textureID);
-#endif
-		
 	}
 	
 	/// <summary>
@@ -125,12 +152,12 @@ public class metaioDeviceCamera : MonoBehaviour
 		// update orthographic size
 		Camera cam = GetComponent(typeof(Camera)) as Camera;
 		cam.orthographicSize = getOrthographicSize(screenOrientation);
-		//Debug.Log("Camera orthographic size: "+cam.orthographicSize);
+		Debug.Log("Camera orthographic size: "+cam.orthographicSize);
 		
 		// update camera plane rotation
 		cameraPlane.transform.localRotation = Quaternion.AngleAxis(270.0f, Vector3.right);
 		
-		//Debug.Log("Screen orientation: "+screenOrientation);
+		Debug.Log("Screen orientation: "+screenOrientation);
 		
 		
 		switch (screenOrientation)
@@ -197,10 +224,15 @@ public class metaioDeviceCamera : MonoBehaviour
 		
 		// Create the texture that will hold camera frames
 		
-		// Android, iOS and OSX
+		// Android and OSX
 		TextureFormat textureFormat = TextureFormat.RGBA32;
 		
-		if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
+		if (Application.platform == RuntimePlatform.IPhonePlayer)
+		{
+			// iOS
+			textureFormat = TextureFormat.BGRA32;
+		}
+		else if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
 		{
 			// Windows
 			textureFormat = TextureFormat.RGB24;
@@ -227,25 +259,8 @@ public class metaioDeviceCamera : MonoBehaviour
 	{
 		// determine scale of the camera plane
 		float scale = MetaioSDKUnity.getCameraPlaneScale();
-	
-		if (Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor)
-		{
-			// Windows
-			cameraPlane.transform.localScale = new Vector3(-scale, scale, -scale);
-		}
-		else if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
-		{
-			// OSX
-			cameraPlane.transform.localScale = new Vector3(-scale, scale, scale);
-		}
-		else if (Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer)
-		{
-			// Android and iOS
-			cameraPlane.transform.localScale = new Vector3(-scale, scale, scale);
-		}
-		else
-		{
-			Debug.LogError("Unsupported platform: "+Application.platform);
-		}
+		
+		// set scale of the camera plane
+		cameraPlane.transform.localScale = new Vector3(-scale, scale, scale);
 	}
 }

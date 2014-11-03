@@ -23,7 +23,7 @@
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>Draw3D</string>
+	<string>Luminate</string>
 	<key>CFBundleIconFiles</key>
 	<array>
 		<string>AppIcon57x57.png</string>
@@ -36,7 +36,10 @@
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
 	</array>
 	<key>UIPrerenderedIcon</key>
 	<false/>

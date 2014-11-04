@@ -1,3 +1,11 @@
+
+# Why do you ignore me git?
+
+Libraries/libiPhone-lib.a
+Libraries/metaiosdk
+.//Libraries/libiPhone-lib.a
+.//Libraries/metaiosdk
+
 #########################
 # .gitignore file for Xcode4 and Xcode5 Source projects
 #

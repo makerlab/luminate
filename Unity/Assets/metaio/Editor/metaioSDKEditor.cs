@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
-using metaio;
 
 [CustomEditor(typeof(metaioSDK))]
 public class metaioSDKEditor : Editor {
@@ -37,32 +36,17 @@ public class metaioSDKEditor : Editor {
 		EditorGUILayout.HelpBox("The metaioSDK compnent will be used to configure the tracking, preview the camera, " +
 		 	"tranfrom the main camera and provide a valid SDK license. If you use the Unity build-in configuratio, " +
 		 	"please use read the documenation at http://dev.metaio.com/sdk", MessageType.Info);
-
-		try
-		{
-			// This may fail with Unity free license (Unity plugins for Windows/Mac require Unity PRO license)
-			metaioSDK.writeApplicationSignature(EditorGUILayout.TextField("SDK Signature", metaioSDK.parseApplicationSignature()));
-#if UNITY_3_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_5
-			metaioSDK.stereoRenderingEnabled = EditorGUILayout.Toggle("Stereo rendering", metaioSDK.stereoRenderingEnabled);
-
-			metaioSDK.seeThroughEnabled = EditorGUILayout.Toggle("See-through", metaioSDK.seeThroughEnabled);
-#else
-			metaioSDK.stereoRenderingEnabled = EditorGUILayout.ToggleLeft("Stereo rendering", metaioSDK.stereoRenderingEnabled);
-
-			metaioSDK.seeThroughEnabled = EditorGUILayout.ToggleLeft("See-through", metaioSDK.seeThroughEnabled);
-#endif
-		}
-		catch (Exception e)
-		{
-			Debug.LogWarning("Failed to write Metaio SDK license file (expected failure if you use Unity Free license): "+e.Message);
-		}
-
+		
+		metaioSDK.writeApplicationSignature(EditorGUILayout.TextField("SDK Signature", metaioSDK.parseApplicationSignature()));
+		
 		EditorGUILayout.Separator();
-		EditorGUILayout.LabelField("Choose the default camera to start:");
-		int[] facingValues = {0, 1, 2};
-		string[] facingNames = {"UNDEFINED", "BACK", "FRONT"};
-		metaioSDK.cameraFacing = EditorGUILayout.IntPopup("Camera facing", metaioSDK.cameraFacing, facingNames, facingValues);
-
+		EditorGUILayout.LabelField("Camera capture parameters:");
+		metaioSDK.cameraIndex = EditorGUILayout.IntField("Camera index", metaioSDK.cameraIndex);
+		metaioSDK.cameraWidth = EditorGUILayout.IntField("Camera width", metaioSDK.cameraWidth);
+        metaioSDK.cameraHeight = EditorGUILayout.IntField("Camera height", metaioSDK.cameraHeight);
+		metaioSDK.cameraDownsample = EditorGUILayout.IntField("Downsample factor", metaioSDK.cameraDownsample);
+		metaioSDK.cameraFlip = EditorGUILayout.IntField("Image flip", metaioSDK.cameraFlip);
+		
 		EditorGUILayout.Separator();
 		EditorGUILayout.LabelField("Renderer clipping plane limits in millimeters:");
 		metaioSDK.nearClippingPlaneLimit = EditorGUILayout.FloatField("Near Limit", metaioSDK.nearClippingPlaneLimit);

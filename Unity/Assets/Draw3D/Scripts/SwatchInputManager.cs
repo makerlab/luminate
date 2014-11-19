@@ -19,12 +19,12 @@ public class SwatchInputManager : MonoBehaviour {
 	public GameObject prefabSwatch;
 	public Color color = Color.green;
 	public Material material;
-	Swatch3d.STYLE style = Swatch3d.STYLE.TUBE;
 	public float DrawSizeDefault = 8.0f;
 	
 	// current focus of drawing
 	GameObject focus;
 	bool ignoreFingerPosition = false;
+	Swatch3d.STYLE style = Swatch3d.STYLE.TUBE;
 	
 	// ----------------------------------------------------------------------------
 	
@@ -82,9 +82,9 @@ public class SwatchInputManager : MonoBehaviour {
 				case "Track": 	 Track(); return true;
 				case "SaveExit": SaveAndExit(); return true;
 				case "Sun": 	 SetSunPosition(); SetChoice2(hit.transform.gameObject); return true;
-				case "Undo":     Undo(); SetChoice2(hit.transform.gameObject); return true;
+				case "Undo":     Undo(); return true;
 				case "Tube":     style = Swatch3d.STYLE.TUBE; SetChoice2(hit.transform.gameObject); return true;
-				case "Ribbon":   style = Swatch3d.STYLE.CURSIVE_DOUBLE_SIDED; SetChoice2(hit.transform.gameObject); return true;
+				case "Ribbon":   style = Swatch3d.STYLE.RIBBON; SetChoice2(hit.transform.gameObject); return true;
 				case "Swatch":   style = Swatch3d.STYLE.SWATCH; SetChoice2(hit.transform.gameObject); return true;
 				default: break;
 			}
@@ -129,11 +129,11 @@ public class SwatchInputManager : MonoBehaviour {
 		
 		if(ignoreFingerPosition == false) {
 			// If the user is moving their finger around then use that as a draw hint
-			input.z = 400;
+			input.z = 400; // xxx TODO hack use the estimated starting distance- should correct this
 			xyz = brush.position = Camera.main.ScreenToWorldPoint(input);
 		}
 
-		art.paintConsider(xyz,forward,right,DrawSizeDefault);
+		art.paintConsider(Camera.main.transform.position,xyz,right,forward,DrawSizeDefault);
 	}
 
 	void HandleUp() {
@@ -190,7 +190,7 @@ public class SwatchInputManager : MonoBehaviour {
 		Screen.orientation = ScreenOrientation.LandscapeLeft;
 		ShakeStart();
 
-		// test();	
+		//test();	
 	}
 
 	void test() {
@@ -199,9 +199,14 @@ public class SwatchInputManager : MonoBehaviour {
 		focus.transform.parent = this.transform;
 		
 		Swatch3d art = focus.GetComponent<Swatch3d>() as Swatch3d;
-		art.setup(color,style,material);
+		art.setup(color,Swatch3d.STYLE.TUBE,material);
 		
-		art.test ();
+		Vector3 xyz = brush.transform.position;
+		Vector3 right = brush.transform.right;
+		Vector3 forward = brush.transform.forward;
+		Vector3 camerapos = new Vector3(0,100,0);
+		
+		art.test (camerapos,right,forward,DrawSizeDefault);
 		
 		focus = null;
 	

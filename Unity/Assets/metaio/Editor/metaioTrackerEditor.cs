@@ -36,9 +36,9 @@ public class metaioTrackerEditor : Editor
 		EditorGUILayout.HelpBox("Specify if the camera should be transform or the objects", MessageType.Info);
 		GUIContent cameraLabel = new GUIContent("Transform camera", "Tranform the camera or the object? The default is true." +
 			"If you need to tranform multiple objects, the camera should be fixed (e.g. set to false)");
-		tracker.transformCamera = EditorGUILayout.Toggle(cameraLabel, tracker.transformCamera);
+		tracker.tranformCamera = EditorGUILayout.Toggle(cameraLabel, tracker.tranformCamera);
 		
-        if (metaioSDK.trackingAssetIndex == 10)
+        if (metaioSDK.trackingAssetIndex == 9)
         {
             // help text
             EditorGUILayout.HelpBox("Here you can specify the appropriate tracking target. Please make sure the images have " +

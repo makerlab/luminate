@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using metaio;
-using metaio.unitycommunication.util;
 
 public class metaioCallback : MonoBehaviour 
 {
@@ -15,6 +14,8 @@ public class metaioCallback : MonoBehaviour
 	/// </summary>
 	virtual protected void onSDKReady()
 	{
+		//Debug.Log ("Starting Tracking");
+		MetaioSDKUnity.startInstantTracking("INSTANT_3D", "");
 	}
 	
 	/// <summary>
@@ -153,28 +154,29 @@ public class metaioCallback : MonoBehaviour
 	
 		if (eventID != EUNITY_CALLBACK_EVENT.EUCE_NONE)
 		{
-			uint eventValueLength = 0;
-			IntPtr eventValuePtr = MetaioSDKUnity.getUnityCallbackEventValue(out eventValueLength);
+			IntPtr eventValuePtr = MetaioSDKUnity.getUnityCallbackEventValue();
+			String eventValue = Marshal.PtrToStringAnsi(eventValuePtr);
 
-//			Debug.Log("Callback event: "+eventID+", "+eventValue);
+			//Debug.Log("Callback event: "+eventID+", "+eventValue);
 			
 			switch (eventID)
 			{
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG:
-					onLog(Marshal.PtrToStringAnsi(eventValuePtr));
+					onLog(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG_WARNING:
-					onLogWarning(Marshal.PtrToStringAnsi(eventValuePtr));
+					onLogWarning(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_LOG_ERROR:
-					onLogError(Marshal.PtrToStringAnsi(eventValuePtr));
+					onLogError(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_SDK_READY:
 					onSDKReady();
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_TRACKING_EVENT:
-					byte[] pbAsBytes = new byte[eventValueLength];
-					Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)eventValueLength);
+					uint length = MetaioSDKUnity.getUnityCallbackEventValueLength();	
+					byte[] pbAsBytes = new byte[length];
+					Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)length);
 					metaio.unitycommunication.OnTrackingEventProtocol prot = metaio.unitycommunication.OnTrackingEventProtocol.ParseFrom(pbAsBytes);
 					List<TrackingValues> listTV = new List<TrackingValues>();
 					for (int i = 0; i < prot.TrackingValuesCount; ++i)
@@ -184,19 +186,19 @@ public class metaioCallback : MonoBehaviour
 					onTrackingEvent(listTV);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_INSTANT_TRACKING_EVENT:
-					onInstantTrackingEvent(eventValuePtr.MarshalToStringUTF8());
+					onInstantTrackingEvent(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_CAMERA_IMAGE_SAVED:
-					onCameraImageSaved(eventValuePtr.MarshalToStringUTF8());
+					onCameraImageSaved(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_VISUAL_SEARCH_RESULT:
-					parseVisualSearchResponse(eventValuePtr, eventValueLength);
+					parseVisualSearchResponse(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_VISUAL_SEARCH_STATUS:
-					onVisualSearchStatusChanged(Marshal.PtrToStringAnsi(eventValuePtr));
+					onVisualSearchStatusChanged(eventValue);
 					break;
 				case EUNITY_CALLBACK_EVENT.EUCE_MOVIE_END:
-					IntPtr movieTextureGeometryPtr = new IntPtr(int.Parse(Marshal.PtrToStringAnsi(eventValuePtr)));
+					IntPtr movieTextureGeometryPtr = new IntPtr(int.Parse(eventValue));
 					onMovieEnd(metaioMovieTexture.getGameObjectNameForMovieTextureGeometryPtr(movieTextureGeometryPtr));
 					break;
 			}
@@ -206,19 +208,32 @@ public class metaioCallback : MonoBehaviour
 		}
 	}
 	
-	private void parseVisualSearchResponse(IntPtr eventValuePtr, uint eventValueLength)
+	private void parseVisualSearchResponse(String eventValue)
 	{
-		byte[] pbAsBytes = new byte[eventValueLength];
-		Marshal.Copy(eventValuePtr, pbAsBytes, 0, (int)eventValueLength);
-		metaio.unitycommunication.OnVisualSearchResultProtocol pb = metaio.unitycommunication.OnVisualSearchResultProtocol.ParseFrom(pbAsBytes);
+//		Debug.Log ("parseVisualSearchResponse: "+eventValue);
 		
-		VisualSearchResponse[] responses = new VisualSearchResponse[pb.ResponsesCount];
-		for (int i = 0; i < pb.ResponsesCount; ++i)
+		string[] tokens = eventValue.Split("|"[0]);
+		
+//		Debug.Log ("parseVisualSearchResponse: tokens count "+tokens.Length);
+		
+		if (tokens.Length < 2)
+			return;
+		
+		int errorCode = Int32.Parse(tokens[0]);
+		int responseCount = Int32.Parse(tokens[1]);
+		
+		VisualSearchResponse[] response = new VisualSearchResponse[responseCount];
+		
+//		Debug.Log ("parseVisualSearchResponse: "+responseCount);
+		
+		int j = 2;
+		for (int i=0; i<responseCount; i++)
 		{
-			responses[i] = VisualSearchResponse.FromPB(pb.ResponsesList[i]);
+			response[i].TrackingConfigurationName = tokens[j++];
+			response[i].TrackingConfiguration = tokens[j++];			
 		}
-
-		onVisualSearchResult(responses, pb.ErrorCode);
+		
+		onVisualSearchResult(response, errorCode);
 	}
 	
 #endregion

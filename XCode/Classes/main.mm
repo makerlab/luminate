@@ -1,5 +1,6 @@
 #import <UIKit/UIKit.h>
 
+#include <time.h>
 #include "RegisterClasses.h"
 #include "RegisterMonoModules.h"
 
@@ -30,3 +31,8 @@ int main(int argc, char* argv[])
 	[pool release];
 	return 0;
 }
+
+
+#if TARGET_IPHONE_SIMULATOR
+extern "C" clock_t clock$UNIX2003(void) { return clock(); }
+#endif // TARGET_IPHONE_SIMULATOR

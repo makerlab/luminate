@@ -62,60 +62,26 @@ public class metaioSDK : MonoBehaviour
 	[SerializeField]
 	public String trackingConfiguration;
 	
-	// Device camera to start
+	// Device camera index
 	[SerializeField]
-	public int cameraFacing = MetaioCamera.FACE_UNDEFINED;
-
-	// Whether stereo rendering is enabled (note that there is no property for see-through because that can simply be
-	// achieved by disabling the metaioDeviceCamera script)
+	public int cameraIndex = 0;
+	
+	// Device camera width
 	[SerializeField]
-	private bool _stereoRenderingEnabled = false;
-	public bool stereoRenderingEnabled
-	{
-		get
-		{
-			return _stereoRenderingEnabled;
-		}
-		set
-		{
-			_stereoRenderingEnabled = value;
-
-			MetaioSDKUnity.setStereoRendering(_stereoRenderingEnabled ? 1 : 0);
-
-			metaioTracker[] trackers = (metaioTracker[])FindObjectsOfType(typeof(metaioTracker));
-			foreach (metaioTracker tracker in trackers)
-			{
-				tracker.stereoRenderingEnabled = _stereoRenderingEnabled;
-			}
-		}
-	}
-
+	public int cameraWidth = 320;
+	
+	// Device camera height
 	[SerializeField]
-	private bool _seeThroughEnabled = false;
-	public bool seeThroughEnabled
-	{
-		get
-		{
-			return _seeThroughEnabled;
-		}
-		set
-		{
-			_seeThroughEnabled = value;
-
-			if (MetaioSDKUnity.deviceCamera != null)
-			{
-				MetaioSDKUnity.deviceCamera.seeThroughEnabled = _seeThroughEnabled;
-			}
-
-			// Trackers have references to the mono/left/right cameras. So use that class to change see-through settings.
-			metaioTracker[] trackers = (metaioTracker[])FindObjectsOfType(typeof(metaioTracker));
-			foreach (metaioTracker tracker in trackers)
-			{
-				tracker.seeThroughEnabled = _seeThroughEnabled;
-			}
-		}
-	}
-
+	public int cameraHeight = 240;
+	
+	// Downsampling factor for image that is processed
+	[SerializeField]
+	public int cameraDownsample = 1;
+	
+	// Camera image flip bitmask, see MetaioCamera
+	[SerializeField]
+	public int cameraFlip = (int)MetaioCamera.FLIP_NONE;
+	
 	// Near clipping plane limit (default 50mm)
 	[SerializeField]
 	public float nearClippingPlaneLimit = 50f;
@@ -321,9 +287,14 @@ public class metaioSDK : MonoBehaviour
 		{
 			Screen.orientation = ScreenOrientation.AutoRotation;
 		}
-
-		Debug.Log("Starting the default camera with facing: "+cameraFacing);
-		MetaioSDKUnity.startCamera(cameraFacing);
+				
+		MetaioCamera camera = new MetaioCamera();
+		camera.index = cameraIndex;
+		camera.resolution.x = cameraWidth;
+		camera.resolution.y = cameraHeight;
+		camera.downsample = (uint)cameraDownsample;
+		camera.flip = (uint)cameraFlip;
+		MetaioSDKUnity.startCamera(camera);
 		
 		// Load tracking configuration
 		if (String.IsNullOrEmpty(trackingConfiguration))
@@ -347,10 +318,6 @@ public class metaioSDK : MonoBehaviour
 		
 		// Set renderer clipping plane limits
 		MetaioSDKUnity.setRendererClippingPlaneLimits(nearClippingPlaneLimit, farClippingPlaneLimit);
-
-		// Apply initial settings for mono/stereo and (non-)see-through mode
-		stereoRenderingEnabled = _stereoRenderingEnabled;
-		seeThroughEnabled = _seeThroughEnabled;
 	}
 	
 	void OnDisable()
@@ -370,11 +337,22 @@ public class metaioSDK : MonoBehaviour
 
 		if (pause)
 		{
-			MetaioSDKUnity.onPauseApplication();
+			MetaioSDKUnity.pauseSensors();
+			
+			if (MetaioSDKUnity.usingCamera)
+			{
+				MetaioSDKUnity.stopCamera();
+			}
 		}
 		else
 		{
-			MetaioSDKUnity.onResumeApplication();
+			MetaioSDKUnity.resumeSensors();
+
+			if (MetaioSDKUnity.usingCamera)
+			{
+				// Resume same camera as previously set
+				MetaioSDKUnity.startCamera(MetaioSDKUnity.requestedCamera);
+			}
 		}
 	}
 	

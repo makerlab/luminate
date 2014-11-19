@@ -34,20 +34,13 @@ using System.Collections.Specialized;
 //
 
 public class Swatch3d: MonoBehaviour {
-	
-	public bool IsFinished = false;
-	public bool EnableShadows = true;
-	public bool EnableBottom = true;
-	public bool IncrementalDouglasPeucker = false; // does not apply to swatch type
+
 	public Material mainMaterial;
 	public Material shadowMaterial;
-	
-	// ----------------------------------------------------------------------------------------------------------------------------------------
-	
+		
 	public enum STYLE {
 		NONE,
-		CURSIVE_SINGLE_SIDED,
-		CURSIVE_DOUBLE_SIDED,
+		RIBBON,
 		SWATCH,
 		TUBE,
 		//GLOW,
@@ -66,20 +59,23 @@ public class Swatch3d: MonoBehaviour {
 	Mesh mainMesh;
 	Mesh bottomMesh;
 	Mesh shadowMesh;
-
-	// Tube properties - but I will probably move everything over to tubes even if rendering ribbons TODO
-	static Vector3[] crossPoints;
-	static Quaternion rot = Quaternion.identity;
-	int crossSegments = 2;
-	int endCapVerts = 0;
-	int endCapTris = 0;
 	
-	// An index for tracking dirty clean state
+	// Configuration
 	int cleanIndex = 0;
-
+	int rotationStyle = 0;
+	bool endCaps = false;
+	bool IsFinished = false;
+	bool EnableShadows = false;
+	bool EnableBottom = false;
+	bool IncrementalDouglasPeucker = false;
+	const float sqrToleranceMin = 0.1f;
+	const float sqrToleranceQuick = 3 * 3;
+	
 	// Total Drawing Count
 	static int TotalCount = 0;
 
+	// ----------------------------------------------------------------------------------------------------------------------------------------
+	
 	// Setup...
 	public void setup(Color _color, STYLE _style = STYLE.NONE, Material _material = null, Material _shadowMaterial = null) {
 
@@ -89,26 +85,38 @@ public class Swatch3d: MonoBehaviour {
 		
 		style = _style;
 		
-		// set style aspects
-		if(style == STYLE.SWATCH) {
+		switch(style) {
+		case STYLE.RIBBON:
+			EnableBottom = true;
+			EnableShadows = true;
+			IncrementalDouglasPeucker = false;
+			crossSegments = 2;
+			endCaps = false;
+			rotationStyle = 0;
+			break;
+		case STYLE.SWATCH:
+			EnableBottom = false;
 			EnableShadows = false;
 			IncrementalDouglasPeucker = false;
 			crossSegments = 2;
-		}
-		
-		else if(style == STYLE.CURSIVE_DOUBLE_SIDED ) {
-			crossSegments = 2;
-		}
-		
-		// set a few things for tubes specifically
-		else if(style == STYLE.TUBE) {
-			crossSegments = 8;
-			gameObject.renderer.castShadows = gameObject.renderer.receiveShadows = false;
-			EnableShadows = false;
+			endCaps = false;
+			rotationStyle = 0;
+			break;
+		case STYLE.TUBE:
 			EnableBottom = false;
-			initTubeHelper();
-		}
-		
+			EnableShadows = false;
+			IncrementalDouglasPeucker = false;
+			crossSegments = 5;
+			endCaps = true;
+			rotationStyle = 0;
+			gameObject.renderer.castShadows = false;
+			//gameObject.renderer.receiveShadows = false;
+			break;
+		};
+
+		// Bevel is pre-computed
+		initTubeHelper();
+
 		// Set materials supplied else use default else crash
 		if(_material != null) mainMaterial = _material;
 		if(_shadowMaterial !=null) shadowMaterial = _material;
@@ -117,17 +125,17 @@ public class Swatch3d: MonoBehaviour {
 		mainMaterial = Object.Instantiate(mainMaterial) as Material;
 		mainMaterial.color = _color;
 
-		// all kinds of geometries have these qualities in common		
+		// Basic mesh
 		if(true) {
 			main = gameObject;
 			main.name = "Draw"+TotalCount;
 			main.renderer.material = mainMaterial;
 			mainMesh = gameObject.GetComponent<MeshFilter>().mesh;
 		}
-	
-		// some geometries have a bottom side
+
+		// Ribbon style renders the bottom separately in order to guarantee mesh normals are independent (due to limits in Unity).
+		// NOTE using geometry not shader for backfaces... arguable either way : http://danielbrauer.com/files/rendering-double-sided-geometry.html
 		if(EnableBottom) {
-			// NOTE using geometry not shader for backfaces... arguable either way : http://danielbrauer.com/files/rendering-double-sided-geometry.html
 			bottom = new GameObject( "Bottom" + TotalCount );
 			bottom.transform.parent = gameObject.transform;
 			bottom.AddComponent<MeshFilter>();
@@ -137,8 +145,8 @@ public class Swatch3d: MonoBehaviour {
 		}
 
 		// some geometries have shadows		
+		// NOTE a separate geometry object is used for this rather than say tacking some shadow polys onto the end of the main obj geometry
 		if(EnableShadows) {
-			// NOTE separate geometry is used for this due to material changes not being supported on a per polygon basis in Unity
 			shadow = new GameObject( "Shadow" + TotalCount );
 			shadow.transform.parent = gameObject.transform;
 			shadow.AddComponent<MeshFilter>();
@@ -149,28 +157,12 @@ public class Swatch3d: MonoBehaviour {
 		
 	}
 
-	public void test() {
-		Vector3 xyz;
-		Vector3 forward = Vector3.forward;
-		Vector3 right = Vector3.right;
-		float width = 10.0f;
-		
-		xyz = Vector3.zero;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 40;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 200;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 300;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 350;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 400;
-		paintConsider(xyz,forward,right,width);
-		xyz = Vector3.up * 100 + Vector3.right * 450;
-		paintConsider(xyz,forward,right,width);
+	public void test(Vector3 camerapos, Vector3 right, Vector3 forward,float width = 3.0f) {
+		paintConsider(camerapos,Vector3.up * 100 ,right,forward,width);
+		paintConsider(camerapos,Vector3.up * 100 + Vector3.forward * 100,right,forward,width);
+		paintConsider(camerapos,Vector3.up *-100 + Vector3.forward * 100,right,forward,width);
+		paintConsider(camerapos,Vector3.up * 0 ,right,forward,width);
+		paintConsider(camerapos,Vector3.up * 0 + Vector3.left * 100,right,forward,width);
 	}
 
 	//--------------------------------------------------------------------------------------------------------------------------
@@ -182,138 +174,133 @@ public class Swatch3d: MonoBehaviour {
 	public List<float> velocities = new List<float>();
 
 	// produced collections of vertices in a form that lets me incrementally extend the set
-	// NOTE the unity C# interface requires an array of the exact size as the output so no savings are had by static large buffers
 	public List<Vector3> vertices = new List<Vector3>();
 	public List<Vector2> uvs = new List<Vector2>();
 	public List<int> triangles = new List<int>();
-	//public List<Vector3> normals = new List<Vector3>();
-	//public List<Color> colors = new List<Color>();
 
-	// call this to add points - points may be thrown away if they're not interesting enough
-	public bool paintConsider(Vector3 xyz, Vector3 forward, Vector3 right,float width = 3.0f ) {
+	// add a point (or replace the last point if it is insufficiently novel
+	public void paintConsider(Vector3 camerapos, Vector3 xyz, Vector3 right, Vector3 forward,float width = 3.0f ) {
 
 		if(IsFinished) {
 			Debug.Log ("Illegal points; object was marked finished... while not critical it probably means there is a bug elsewhere.");
-			return false;
-		}
-
-		// swatches never extend beyond a single quad
-		if(style == STYLE.SWATCH) {
-
-			if(points.Count < 2) {
-				points.Add(xyz);
-				rights.Add(Vector3.right);
-				velocities.Add(width);
-			} else {
-
-				// a swatch is flattest at right angles to the intersection of the camera forward and swatch direction vector
-				right = Vector3.Cross( forward, xyz - points[0] ).normalized * width;
-								
-				points[1] = xyz;
-				rights[1] = right;
-				rights[0] = right;
-				velocities[1] = width;
-			}
-			
+			return;
 		}
 		
-		// all other styles (aside from swatches) get longer
-		else {
-			
-			// If not doing a full blown early optimization then at least do a quick test to discard the many cospatial points
-			// NOTE TODO may want to carefully audit what we feel is the minimum distance for discarding features
-			if(IncrementalDouglasPeucker == false) {
-				if((points.Count > 0 && (xyz-points[points.Count-1]).sqrMagnitude < sqrToleranceMin)) {
-					return false;
-				}
+		// given a point decide on how to store it
+		int count = points.Count;
+		int writestyle = 1;
+		if(count < 2) {
+			writestyle = 1; // = 0; <- disabled this because it is confusing to rewrite the second point later
+		} else if(style == STYLE.SWATCH) {
+			writestyle = 2;
+			right = Vector3.Cross( forward, xyz - points[0] ).normalized * width; // hack
+		} else if(IncrementalDouglasPeucker == false) {
+			if( (xyz-points[count-1]).sqrMagnitude < sqrToleranceQuick) {
+				// TODO this seems to be producing non consistent results - examine XXX
+				writestyle = 3;
 			}
+		}
 
+		// store point
+		switch(writestyle) {
+		case 0: // unused right now - always want to rewrite the second point and that is a hassle with this approach.
+			// force two points into the system
 			points.Add(xyz);
-			rights.Add(right);
+			rights.Add(Vector3.right);
 			forwards.Add(forward);
 			velocities.Add(width);
+			goto case 1;
+		case 1:
+			// tack on a point
+			points.Add(xyz);
+			rights.Add(Vector3.right);
+			forwards.Add(forward);
+			velocities.Add(width);
+			if(IncrementalDouglasPeucker == true && simplifyDouglasPeucker()) flushIntermediate();
+			break;
+		case 2:
+			// force coplanarity + rewrite last point insitu; (this is a special mode for swatches which only have two points total ever)
+			rights[count-2] = right;
+			points[count-1] = xyz;
+			rights[count-1] = right;
+			forwards[count-1] = forward;
+			velocities[count-1] = width;
+			flushIntermediate();
+			break;
+		case 3:
+			// rewrite last point insitu; do not consider flushing intermediate
+			cleanIndex = count-1;
+			points[count-1] = xyz;
+			rights[count-1] = right;
+			forwards[count-1] = forward;
+			velocities[count-1] = width;
+			flushIntermediate(); // TODO XXX it would be nice to be able to just flush the cap
+			break;
 		}
 
-		// render our drawing to intermediate (in memory) and final (to unity and to display via opengl) 
-		paintToGeometry(false);
+flushIntermediate(); // necessary for tubes for now argh.TODO remove
 
-		return true;
+		paintToIntermediate();
 	}
 
-	// optional final polish pass; simplifies line and lets unity optimize geometry; do not do incremental sanitization if did it before
+	// finalize - will tell caller if line is worth keeping
 	public bool paintFinish() {
 		IsFinished = true;
-		return paintToGeometry(true);
+		if(style == STYLE.SWATCH) {
+			if( points.Count < 2) return false;
+			if( (points[1]-points[0]).sqrMagnitude < sqrToleranceMin) return false;
+		} else {
+			if(points.Count < 3) return false;
+			if(IncrementalDouglasPeucker == false && simplifyDouglasPeucker()) flushIntermediate();
+			paintToIntermediate();
+			paintOptimizeMesh();
+		}
+		return true;
+	}
+	
+	// helper
+	void paintToIntermediate() {
+		if(cleanIndex >= points.Count) return;
+		for(;cleanIndex<points.Count;cleanIndex++) {
+			if(style == STYLE.RIBBON || style == STYLE.SWATCH) {
+				paintToRibbonIntermediateRepresentation(cleanIndex);
+			} else {
+				paintToTubeIntermediateRepresentation(cleanIndex);
+			}
+		}
+		paintToUnity3DRepresentation();
 	}
 
-	// convert our points into unity geometry
-	public bool paintToGeometry(bool compress = false) {
-		
-		// Do nothing if we have too little to chew on
-		if(points.Count < 2) return false;
-
-		if(style == STYLE.SWATCH) {
-			// For swatches just reset the line for now - xxx slightly hacked and lazy
-			vertices = new List<Vector3>();
-			uvs = new List<Vector2>();
-			triangles = new List<int>();
-			cleanIndex = 0;
-		} else {
-
-			// For most line drawings - we're either incrementally optimizing or we optimize once at the end
-			if(IncrementalDouglasPeucker != compress) {
-				int beforeLength = points.Count;
-				simplifyDouglasPeucker();
-				int afterLength = points.Count;
-				if(afterLength < beforeLength ) {
-					// it appears there was cleanup somewhere in the array; so force remake the display geometry completely
-					vertices = new List<Vector3>();
-					uvs = new List<Vector2>();
-					triangles = new List<int>();
-					cleanIndex = 0;
-					endCapVerts = 0;
-					endCapTris = 0;
-				} else {
-					// appears there was no optimization; this isn't strictly an accurate test... should checksum ideally
-				}
-			}
-		}
-		
-		// produce intermediate vertices and triangles for any new points (ones marked dirty)
-		for(int i = cleanIndex; i < points.Count;i++) {
-			if(style == STYLE.TUBE) {
-				paintToTubeIntermediateRepresentation(i);
-			} else {
-				paintToRibbonIntermediateRepresentation(i);
-			}
-		}
-		cleanIndex = points.Count;
-
-		// make unity art
-		paintToUnity3DRepresentation(compress);
-
-		return true;
+	// flush intermediate
+	void flushIntermediate() {
+		cleanIndex = 0;
+		vertices = new List<Vector3>();
+		triangles = new List<int>();
+		endCapVerts = 0;
+		endCapTris = 0;
 	}
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------
 	
 	public void paintToRibbonIntermediateRepresentation(int p) {
 
+		// slightly obsolete ribbon renderer - still being used
+		// the benefit of this is that it treats tops and bottoms as separate geometry so that normals are not shared - producing better shadows
+		// also it avoids having to adjust the hypotenuse of back faces - if i used a tube renderer with only 2 facets it would produce an X hypotenuse
+		// and it has a simpler bevel approach; naturally suited to cursive
+		
 		Vector3 point = points[p];
 		Vector3 right = rights[p];
+		Vector3 forward = forwards[p];
 		float width = velocities[p];
-		
+
 		// verts
 		vertices.Add ( point - right * width );
 		vertices.Add ( point + right * width );
 
-		// uvs
-		uvs.Add(new Vector2(0,0));
-		uvs.Add(new Vector2(1.0f,0));
-
 		// tris
 		if(p>0) {
-			int j = vertices.Count - 4;
+			int j = vertices.Count - 1 - 3;
 			triangles.Add(j+0); triangles.Add(j+1); triangles.Add (j+2);
 			triangles.Add(j+1); triangles.Add(j+3); triangles.Add (j+2);
 		}
@@ -321,6 +308,14 @@ public class Swatch3d: MonoBehaviour {
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------
 
+	// Tube properties - but I will probably move everything over to tubes even if rendering ribbons TODO
+	static Vector3[] crossPoints;
+	static Quaternion rot = Quaternion.identity;
+	int crossSegments = 2;
+	int endCapVerts = 0;
+	int endCapTris = 0;
+	const float capsize = 5.0f;
+	
 	public void initTubeHelper() {
 		crossPoints = new Vector3[crossSegments];
 		float theta = 2.0f*Mathf.PI/crossSegments;
@@ -330,38 +325,84 @@ public class Swatch3d: MonoBehaviour {
 	}
 
 	// Tube Renderer - this is highly modified from http://wiki.unity3d.com/index.php?title=TubeRenderer
-	// NOTE the bevel or weld between segments is not a bisection of those segments... it is just aligned with the segment... it would be way more elegant to do that.
-	// NOTE the tube 'rotates' or 'twists' along the axis based on the random twists introduced by the player... I *could* remove that with some work.
-	// NOTE this makes some of the other modes obsolete... I could consolidate around this one if I cared.
 	public void paintToTubeIntermediateRepresentation(int p) {
-	
-		// wait till we have enough data to do something useful
-		if(p == 0) {
+
+		if(p < 1) {
 			return;
 		}
 
-		Vector3 point = points[p];
 		Vector3 prev = points[p-1];
+		Vector3 point = points[p];
 		Vector3 forward = forwards[p];
-		const float capsize = 5.0f;
 		Vector3 dir = (point-prev).normalized;
 		float width = velocities[p];
 
-		// get rotation of this segment
-		rot = Quaternion.FromToRotation(Vector3.forward,point-prev);
 
+		// decide what angle and rotation the bevel will have relative to the segments on either side of it.
+		// it has a dramatic effect on the visual appearance
+
+rotationStyle = 6;
+
+		switch(rotationStyle) {
+		case 0:
+			// camera right == widest axis ... for ribbons this produces a cursive line effect where dragging horizontally is narrow and vertical is widest.
+			break;
+		case 1:
+			// travel direction x camera == widest axis ... this produces a wide line that always faces camera - it is another useful ribbon style
+			break;
+		case 2:
+			// travel direction x origin == widest axis ... this produces a line that hopefully minimizes torosional rotation - good for tubes
+			break;
+		case 3:
+			// travel direction x lethargy == widest axis ... this is another strategy to minimize torosional rotation for tubes
+			break;
+		case 4:
+			// a test: rotate the bevel around Y into stretching from (0,0,-1) to (0,0,1) completely ignoring everything about the line direction etc...
+			rot = Quaternion.Euler ( new Vector3(0,90,0) );
+			break;
+		case 5:
+			// a test: rotate the bevel around X into stretching from (0,-1,0) to (0,1,0) completely ignoring everything about the line direction etc...
+			rot = Quaternion.Euler ( new Vector3(90,0,0) );
+			break;
+		case 6:
+			// rotate bevel to be best fit between this and next line if any - trying to minimize torosional rotation over time
+			if(points.Count - 1 > p) {
+
+				Vector3 next = points[p+1];
+				//float angle = Vector3.Angle (point-prev,point-next);
+				//Vector3 cross = Vector3.Cross ((point-prev).normalized,(next-point).normalized);
+				//Vector3 mid = Vector3.Lerp ((point-prev).normalized,(point-next).normalized,0.5f);
+				//Debug.Log ("angle between point #"+p+" and point #"+(p+1)+" is="+angle);
+				//Debug.Log ("cross is " + cross.normalized );
+				//Debug.Log ("lerp is " + mid );
+				//rot = Quaternion.FromToRotation((point-next).normalized,mid);
+
+				// make a rotation that would rotate something to look in this way ignoring up				
+				Quaternion rot1 = Quaternion.LookRotation((point-prev),Vector3.right);
+				Quaternion rot2 = Quaternion.LookRotation((next-point),Vector3.right);
+				rot = Quaternion.Lerp (rot1,rot2,0.5f);
+				
+			} else {
+				rot = Quaternion.FromToRotation(Vector3.forward,point-prev);
+			}
+			break;
+		case 7:
+			// rotate the bevel to be perpendicular to this line - not particularily smart since doesn't consider inter segment angle
+			rot = Quaternion.FromToRotation(Vector3.forward,point-prev);
+			break;
+		default:
+			break;
+		}
+		
 		// inject a start cap
 		if(p == 1) {
-			for (int j=0;j<crossSegments;j++) {
-				vertices.Add ( prev );
-				uvs.Add ( new Vector2(0,0) );
-			}
-			for(float i = 1; i < capsize; i++) {
-				float width2 = Mathf.Sin(Mathf.PI/2*i/capsize) * width;
-				float height = Mathf.Cos(Mathf.PI/2*i/capsize) * width;
+			float start = endCaps == false ? capsize - 1 : 0;
+			for(float i = start; i < capsize; i++) {
+				float width2 = Mathf.Sin(Mathf.PI/2.0f*i/(capsize-1.0f)) * width;
+				float height = Mathf.Cos(Mathf.PI/2.0f*i/(capsize-1.0f)) * width;
 				for (int j=0;j<crossSegments;j++) {
 					vertices.Add ( prev + rot * crossPoints[j] * width2 - dir * height );
-					uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
+					if(i==start)continue;
 					int c = vertices.Count - 1;
 					int d = c - j + ((j+1)%crossSegments);
 					int a = c - crossSegments;
@@ -372,10 +413,9 @@ public class Swatch3d: MonoBehaviour {
 			}
 		}
 
-		// remove the end cap
+		// remove the end cap (not the super most elegant way to deal with this - would be slightly cleaner to leave the memory and just change index)
 		//int capisat = ( p + (int)capsize - 1 ) * crossSegments;
 		if(endCapVerts>0) {
-			uvs.RemoveRange(endCapVerts,vertices.Count-endCapVerts);
 			vertices.RemoveRange(endCapVerts,vertices.Count-endCapVerts);
 			triangles.RemoveRange(endCapTris,triangles.Count-endCapTris);
 		}
@@ -383,7 +423,6 @@ public class Swatch3d: MonoBehaviour {
 		// add main tube
 		for (int j=0;j<crossSegments;j++) {
 			vertices.Add ( point + rot * crossPoints[j] * width );
-			uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
 			int c = vertices.Count - 1;
 			int d = c - j + ((j+1)%crossSegments);
 			int a = c - crossSegments;
@@ -392,16 +431,16 @@ public class Swatch3d: MonoBehaviour {
 			triangles.Add(c); triangles.Add(b); triangles.Add(d);
 		}
 
-		// add the end cap back on
-		if(true) {
+		// add (or read) the end cap
+		if(endCaps) {
 			endCapVerts = vertices.Count;
 			endCapTris = triangles.Count;
-			for(float i = 1; i <= capsize; i++) {
-				float width2 = Mathf.Cos(Mathf.PI/2*i/capsize) * width;
-				float height = Mathf.Sin(Mathf.PI/2*i/capsize) * width;
+			// here i know that there is at least one full width ring so i'm interested only in adding the parts that get smaller down to the tip.
+			for(float i = 1; i < capsize; i++) {
+				float width2 = Mathf.Cos(Mathf.PI/2*i/(capsize-1)) * width;
+				float height = Mathf.Sin(Mathf.PI/2*i/(capsize-1)) * width;
 				for (int j=0;j<crossSegments;j++) {
 					vertices.Add ( point + rot * crossPoints[j] * width2 + dir * height );
-					uvs.Add ( new Vector2(((float)j)/((float)crossSegments),0) );
 					int c = vertices.Count - 1;
 					int d = c - j + ((j+1)%crossSegments);
 					int a = c - crossSegments;
@@ -415,78 +454,70 @@ public class Swatch3d: MonoBehaviour {
 
 	// ----------------------------------------------------------------------------------------------------------------------------------------
 	
-	public void paintToUnity3DRepresentation(bool optimize=false) {
+	public void paintToUnity3DRepresentation() {
 
 		// NOTE due to limits of C# and Unity we are forced to remake the mesh from scratch; cannot use static large arrays
-		// NOTE it would be nice to have a static vertex or uv pool for intermediate representation rather than reallocating...
+		// NOTE it would be nice if Unity let us have a static vertex or uv pool for intermediate representation rather than reallocating... sigh.
 
+		int c = vertices.Count;
 		Vector3[] v = vertices.ToArray();
-		Vector2[] uv = uvs.ToArray();
+		Vector2[] uv = new Vector2[c];
 		int[] tri = triangles.ToArray();
-		
-		if(style == STYLE.SWATCH) {
-			for(int i = 0; i < uv.Length; i+=crossSegments ) {
-				float percent = ((float)i)/((float)(uv.Length-crossSegments));
-				for(int j = 0; j < crossSegments; j++) {
-					uv[i+j][1] = percent;
-				}
+
+		for(int i = 0; i < c; i+= crossSegments ) {
+			// generate smooth UV along entire length
+			// TODO later it would be nice to have a non linear distortion for ribbons so that textured ends wouldn't stretch out so far
+			for(int j = 0; j < crossSegments; j++ ) {
+				float p1 = (float)j/(float)(crossSegments-1);
+				float p2 = (float)i/(float)(c-1);
+				uv[i+j] = new Vector2(p1,p2);
 			}
 		}
 
-		else if(style != STYLE.SWATCH && uv.Length >= 4*crossSegments) {
-			for(int j = 0; j < crossSegments; j++) {
-				uv[0][1] = 0.0f;
-				uv[uv.Length-1][1]=1.0f;
-			}
-			for(int i = 0; i < uv.Length-crossSegments-crossSegments; i+=crossSegments ) {
-				float inset = 0.2f;
-				float percent = ((float)i)/((float)(uv.Length-crossSegments-crossSegments-crossSegments)) * (1.0f-inset-inset) + inset;
-				for(int j = 0; j < crossSegments; j++) {
-					uv[i+j][1] = percent;
-				}
-			}
-		}
-	
 		if(true) {
-			// Build top side of ribbon as a geometry
+			// Promote geometry to unity - for ribbons, swatches and tubes
 			mainMesh.Clear();
 			mainMesh.vertices = v;
 			mainMesh.uv = uv;
 			mainMesh.triangles = tri;
 			mainMesh.RecalculateNormals();
-			//topMesh.RecalculateBounds();
-			if(optimize) mainMesh.Optimize();
+			mainMesh.RecalculateBounds();
 		}
-	
+
 		if(EnableBottom) {
-			// Build bottom side (for ribbon only - arguably a tube renderer could make this obsolete)
+			// Build bottom side (use this for ribbon only - largely because more fine grained control over normals is desired)
 			for(int i = 0; i < tri.Length; i+=3) { int val = tri[i+1]; tri[i+1]=tri[i+2]; tri[i+2]=val; }		
 			bottomMesh.Clear();
 			bottomMesh.vertices = v;
 			bottomMesh.uv = uv;
 			bottomMesh.triangles = tri;
 			bottomMesh.RecalculateNormals();
-			//bottomMesh.RecalculateBounds();
-			if(optimize) bottomMesh.Optimize();
+			bottomMesh.RecalculateBounds();
 		}
 
 		if(EnableShadows) {
 			// Build 3d geometry shadow	
+			// TODO this is inefficient for anything except ribbons (for ngons/tubes a ribbon like shadow could be made).
 			for(int i=0; i < v.Length; i++) v[i].y = 0;
 			shadowMesh.Clear();
 			shadowMesh.vertices = v;
 			shadowMesh.uv = uv;
 			shadowMesh.triangles = tri;
-			//shadowMesh.RecalculateNormals();
-			//shadowMesh.RecalculateBounds();
-			if(optimize) shadowMesh.Optimize();
+			shadowMesh.RecalculateNormals();
+			shadowMesh.RecalculateBounds();
 		}	
 	}
 	
+	void paintOptimizeMesh() {
+		if(mainMesh!=null)mainMesh.Optimize ();
+		if(EnableShadows && shadowMesh!=null)shadowMesh.Optimize();
+	}
+	
 	//--------------------------------------------------------------------------------------------------------------------------
+	// douglas peucker - utility
 	// https://github.com/mourner/simplify-js/blob/3d/simplify.js
-	//
-
+	//--------------------------------------------------------------------------------------------------------------------------
+	
 	float getSquareSegmentDistance(Vector3 p, Vector3 p1, Vector3 p2) {
 		float x = p1.x, y = p1.y, z = p1.z,	dx = p2.x - x, dy = p2.y - y, dz = p2.z - z;
 		if (dx != 0 || dy != 0 || dz != 0) {
@@ -525,19 +556,15 @@ public class Swatch3d: MonoBehaviour {
 		}
 		return newPoints;
 	}
-
-	//--------------------------------------------------------------------------------------------------------------------------
-	// utility
-
-	const float sqrToleranceMin = 0.1f;
 	
-	public void simplifyDouglasPeucker(float Tolerance = sqrToleranceMin) {
+	public bool simplifyDouglasPeucker(float Tolerance = sqrToleranceMin) {
 
-		if (points == null || points.Count < 4) return;
+		if (points.Count < 4) return false;
+
+		List<int> pointIndexsToKeep = new List<int>();
 		
 		int firstPoint = 0;
 		int lastPoint = points.Count - 1;
-		List<int> pointIndexsToKeep = new List<int>();
 		
 		pointIndexsToKeep.Add(firstPoint);
 		pointIndexsToKeep.Add(lastPoint);
@@ -547,10 +574,11 @@ public class Swatch3d: MonoBehaviour {
 		}
 		
 		DouglasPeuckerReduction(firstPoint, lastPoint, Tolerance, ref pointIndexsToKeep);
-		pointIndexsToKeep.Sort();
+
+		if(pointIndexsToKeep.Count == points.Count) return false;
 		
 		//Debug.Log ("Number of points coming into the system was " + points.Count );
-		
+		pointIndexsToKeep.Sort();		
 		List<Vector3> points2 = new List<Vector3>();
 		List<Vector3> rights2 = new List<Vector3>();
 		List<Vector3> forwards2 = new List<Vector3>();
@@ -564,16 +592,17 @@ public class Swatch3d: MonoBehaviour {
 		points = points2;
 		rights = rights2;
 		forwards = forwards2;
-		velocities = velocities2;
-		
+		velocities = velocities2;		
 		//Debug.Log ("Number of points after system was " + points.Count );
-		
+
+		return true;		
 	}
 	
 	private void DouglasPeuckerReduction(int firstPoint, int lastPoint, float tolerance, ref List<int> pointIndexsToKeep) {
 		float maxDistance = 0;
 		int indexFarthest = 0;
 		
+		// find the biggest bump
 		for (int index = firstPoint; index < lastPoint; index++) {
 			float distance = getSquareSegmentDistance(points[index], points[firstPoint], points[lastPoint]);
 			//float distance = PerpendicularDistance(points[firstPoint], points[lastPoint], points[index]);
@@ -582,7 +611,8 @@ public class Swatch3d: MonoBehaviour {
 				indexFarthest = index;
 			}
 		}
-		
+
+		// keep it	
 		if (maxDistance > tolerance && indexFarthest != 0) {
 			pointIndexsToKeep.Add(indexFarthest);
 			DouglasPeuckerReduction(firstPoint, indexFarthest, tolerance, ref pointIndexsToKeep);

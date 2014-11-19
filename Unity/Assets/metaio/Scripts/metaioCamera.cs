@@ -1,49 +1,33 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using metaio;
 
 [RequireComponent(typeof(Camera))]
 public class metaioCamera : MonoBehaviour 
 {
-	private bool updateProjectionMatrix;
-
-	private static List<metaioCamera> instances = new List<metaioCamera>();
-
-	[SerializeField]
-	public CameraType cameraType;
-
-	public void Awake()
+	private static bool updateProjectionMatrix;
+	
+	void Start () 
 	{
-		instances.Add(this);
-	}
-
-	public void OnDestroy()
-	{
-		instances.Remove(this);
-	}
-
-	void Start()
-	{
+		
 		camera.transform.position = Vector3.zero;
 		camera.transform.rotation = Quaternion.identity;
 		
 		updateProjectionMatrix = true;
 	}
-
+	
+	
 	// Update is called once per frame
-	void Update()
+	void Update () 
 	{
 		if (!updateProjectionMatrix)
-		{
 			return;
-		}
 
 		float[] m = new float[16];
-
+	
 		// Retrieve camera projection matrix
-		MetaioSDKUnity.getProjectionMatrix(m, cameraType);
-
+		MetaioSDKUnity.getProjectionMatrix(m);
+	
 		// quick test to validate projection matrix
 		if (m[0] > 0)
 		{
@@ -73,22 +57,20 @@ public class metaioCamera : MonoBehaviour
 			
 			camera.projectionMatrix = matrix;
 
-			Debug.Log("Setting projection matrix: " + camera.projectionMatrix.ToString());
+			//Debug.Log("Setting projection matrix: " + camera.projectionMatrix.ToString());
 			
 			updateProjectionMatrix = false;
 		}
-	}
 
+	} // end Update
+	
 	/// <summary>
 	/// Update camera projection matrix when screen orientation changes
 	/// </summary>
 	public static void updateCameraProjectionMatrix()
 	{
-		foreach (metaioCamera camera in instances)
-		{
-			// Update projection matrix in next Update() call
-			camera.updateProjectionMatrix = true;
-		}
+		// Update projection matrix in next Update() call
+		updateProjectionMatrix = true;
 	}
 }
 

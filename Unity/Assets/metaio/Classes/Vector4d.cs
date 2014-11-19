@@ -1,18 +1,9 @@
-using System.Runtime.InteropServices;
+using System;
 
 namespace metaio
 {
-	[StructLayout(LayoutKind.Sequential)]
 	public struct Vector4d
 	{
-		public float x;
-		
-		public float y;
-		
-		public float z;
-		
-		public float w;
-
 		public Vector4d(float x, float y, float z, float w)
 		{
 			this.x = x;
@@ -21,7 +12,13 @@ namespace metaio
 			this.w = w;
 		}
 		
+		public float x;
+		
+		public float y;
 
+		public float z;
+
+		public float w;
 	}
 }
 

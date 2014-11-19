@@ -5,13 +5,13 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>CF2B7A34-DA47-4929-ACE9-DEA4B495B2C8</string>
+	<string>59752477-2DC7-474C-A336-619A86329199</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Unity-iPhone</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
 		<key>C739049EF3733F1026F854F6EE5B6FECDFF308BB</key>
-		<string>https://github.com/anselm/draw3d.git</string>
+		<string>https://github.com/anselm/luminate.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>XCode/Unity-iPhone.xcodeproj</string>
@@ -21,7 +21,7 @@
 		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/anselm/draw3d.git</string>
+	<string>https://github.com/anselm/luminate.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
@@ -34,7 +34,7 @@
 			<key>IDESourceControlWCCIdentifierKey</key>
 			<string>C739049EF3733F1026F854F6EE5B6FECDFF308BB</string>
 			<key>IDESourceControlWCCName</key>
-			<string>draw3d</string>
+			<string>luminate</string>
 		</dict>
 	</array>
 </dict>

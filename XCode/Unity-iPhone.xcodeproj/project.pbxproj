@@ -9,12 +9,10 @@
 /* Begin PBXBuildFile section */
 		08B24F76137BFDFA00FBA309 /* iAd.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08B24F75137BFDFA00FBA309 /* iAd.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
-		4312C9621A0843B50081F0B8 /* libc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4312C9611A0843B50081F0B8 /* libc++.dylib */; };
-		43850D1119DEFAE500360891 /* libiPhone-lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D0F19DEFAE500360891 /* libiPhone-lib.a */; };
-		43850D1219DEFAE500360891 /* metaiosdk in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1019DEFAE500360891 /* metaiosdk */; };
-		43850D1419DEFBDB00360891 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1319DEFBDB00360891 /* CoreImage.framework */; };
-		43850D1619DEFBE700360891 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1519DEFBE700360891 /* Security.framework */; };
-		43850D1819DEFBF000360891 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43850D1719DEFBF000360891 /* libxml2.2.dylib */; };
+		43B4666D1A1C79B20063A53B /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43B4666C1A1C79B20063A53B /* Security.framework */; };
+		43B4666F1A1C79DA0063A53B /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 43B4666E1A1C79DA0063A53B /* libxml2.2.dylib */; };
+		43B466711A1C79FD0063A53B /* metaiosdk in Frameworks */ = {isa = PBXBuildFile; fileRef = 43B466701A1C79FD0063A53B /* metaiosdk */; };
+		43B466731A1C7A170063A53B /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43B466721A1C7A170063A53B /* CoreImage.framework */; };
 		5623C57617FDCB0800090B9E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		5623C57717FDCB0800090B9E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 830B5C100E5ED4C100C7819F /* UIKit.framework */; };
 		5623C57D17FDCB0900090B9E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5623C57B17FDCB0900090B9E /* InfoPlist.strings */; };
@@ -104,13 +102,11 @@
 		08B24F75137BFDFA00FBA309 /* iAd.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = iAd.framework; path = System/Library/Frameworks/iAd.framework; sourceTree = SDKROOT; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* luminate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = luminate.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4312C9611A0843B50081F0B8 /* libc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libc++.dylib"; path = "usr/lib/libc++.dylib"; sourceTree = SDKROOT; };
-		43850D0F19DEFAE500360891 /* libiPhone-lib.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libiPhone-lib.a"; path = "Libraries/libiPhone-lib.a"; sourceTree = "<group>"; };
-		43850D1019DEFAE500360891 /* metaiosdk */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = metaiosdk; path = Libraries/metaiosdk; sourceTree = "<group>"; };
-		43850D1319DEFBDB00360891 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
-		43850D1519DEFBE700360891 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		43850D1719DEFBF000360891 /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
-		5623C57317FDCB0800090B9E /* luminate.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = luminate.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		43B4666C1A1C79B20063A53B /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		43B4666E1A1C79DA0063A53B /* libxml2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libxml2.2.dylib; path = usr/lib/libxml2.2.dylib; sourceTree = SDKROOT; };
+		43B466701A1C79FD0063A53B /* metaiosdk */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = metaiosdk; path = Libraries/metaiosdk; sourceTree = "<group>"; };
+		43B466721A1C7A170063A53B /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
+		5623C57317FDCB0800090B9E /* Example.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = Example.octest; path = luminate.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5623C57A17FDCB0900090B9E /* Unity-iPhone Tests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Unity-iPhone Tests-Info.plist"; sourceTree = "<group>"; };
 		5623C57C17FDCB0900090B9E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		5623C57E17FDCB0900090B9E /* Unity_iPhone_Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Unity_iPhone_Tests.m; sourceTree = "<group>"; };
@@ -212,11 +208,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4312C9621A0843B50081F0B8 /* libc++.dylib in Frameworks */,
-				43850D1819DEFBF000360891 /* libxml2.2.dylib in Frameworks */,
-				43850D1619DEFBE700360891 /* Security.framework in Frameworks */,
-				43850D1419DEFBDB00360891 /* CoreImage.framework in Frameworks */,
-				43850D1219DEFAE500360891 /* metaiosdk in Frameworks */,
+				43B466731A1C7A170063A53B /* CoreImage.framework in Frameworks */,
+				43B4666F1A1C79DA0063A53B /* libxml2.2.dylib in Frameworks */,
+				43B4666D1A1C79B20063A53B /* Security.framework in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				830B5C110E5ED4C100C7819F /* UIKit.framework in Frameworks */,
 				83B256E20E62FEA000468741 /* OpenGLES.framework in Frameworks */,
@@ -225,9 +219,9 @@
 				83B2574F0E63025400468741 /* libiconv.2.dylib in Frameworks */,
 				D8A1C72B0E8063A1000160D3 /* libiPhone-lib.a in Frameworks */,
 				8358D1B80ED1CC3700E3A684 /* AudioToolbox.framework in Frameworks */,
-				43850D1119DEFAE500360891 /* libiPhone-lib.a in Frameworks */,
 				56FD43960ED4745200FE3770 /* CFNetwork.framework in Frameworks */,
 				5682F4B20F3B34FF007A219C /* MediaPlayer.framework in Frameworks */,
+				43B466711A1C79FD0063A53B /* metaiosdk in Frameworks */,
 				5692F3DD0FA9D8E500EBA2F1 /* CoreLocation.framework in Frameworks */,
 				56BCBA390FCF049A0030C3B2 /* SystemConfiguration.framework in Frameworks */,
 				08B24F76137BFDFA00FBA309 /* iAd.framework in Frameworks */,
@@ -256,7 +250,7 @@
 			isa = PBXGroup;
 			children = (
 				1D6058910D05DD3D006BFB54 /* luminate.app */,
-				5623C57317FDCB0800090B9E /* luminate.octest */,
+				5623C57317FDCB0800090B9E /* Example.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -272,8 +266,7 @@
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				8D1107310486CEB800E47090 /* Info.plist */,
 				83B2574E0E63025400468741 /* libiconv.2.dylib */,
-				43850D0F19DEFAE500360891 /* libiPhone-lib.a */,
-				43850D1019DEFAE500360891 /* metaiosdk */,
+				43B466701A1C79FD0063A53B /* metaiosdk */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
@@ -281,10 +274,9 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				4312C9611A0843B50081F0B8 /* libc++.dylib */,
-				43850D1719DEFBF000360891 /* libxml2.2.dylib */,
-				43850D1519DEFBE700360891 /* Security.framework */,
-				43850D1319DEFBDB00360891 /* CoreImage.framework */,
+				43B466721A1C7A170063A53B /* CoreImage.framework */,
+				43B4666E1A1C79DA0063A53B /* libxml2.2.dylib */,
+				43B4666C1A1C79B20063A53B /* Security.framework */,
 				8358D1B70ED1CC3700E3A684 /* AudioToolbox.framework */,
 				7F36C11013C5C673007FBDD9 /* AVFoundation.framework */,
 				56FD43950ED4745200FE3770 /* CFNetwork.framework */,
@@ -472,7 +464,7 @@
 			);
 			name = "Unity-iPhone Tests";
 			productName = "Unity-iPhone Tests";
-			productReference = 5623C57317FDCB0800090B9E /* luminate.octest */;
+			productReference = 5623C57317FDCB0800090B9E /* Example.octest */;
 			productType = "com.apple.product-type.bundle.ocunit-test";
 		};
 /* End PBXNativeTarget section */
@@ -482,9 +474,6 @@
 			isa = PBXProject;
 			attributes = {
 				TargetAttributes = {
-					1D6058900D05DD3D006BFB54 = {
-						DevelopmentTeam = 7YGPRS26JR;
-					};
 					5623C57217FDCB0800090B9E = {
 						TestTargetID = 1D6058900D05DD3D006BFB54;
 					};
@@ -631,8 +620,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LIBRARY = "libstdc++";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -659,7 +646,6 @@
 					"-weak-lSystem",
 				);
 				PRODUCT_NAME = luminate;
-				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -674,8 +660,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_CXX_LIBRARY = "libstdc++";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CONFIGURATION_BUILD_DIR = "$(BUILD_DIR)";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -700,7 +684,6 @@
 					"-weak-lSystem",
 				);
 				PRODUCT_NAME = luminate;
-				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

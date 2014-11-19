@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using System.IO;
 using metaio;
 
 /// <summary>
@@ -14,16 +13,15 @@ public class MapLoader
     
     private float[] featuresRaw = new float[3 * 100000];
 
-    private const int FEATURES_PACKAGES_AMOUNT = 200;
+    private const int FEATURES_PACKAGES_AMOUNT = 20;
     
     private int totalFeatures;
     private int loadedFeatures;
     
-    private Vector3 featureScale = 1.5f * Vector3.one;
-    
-    // Convert feature points to Unity coordinate system
-    private Vector3 mapScale = new Vector3(1, 1, -1);
-    private Vector3 mapRotation = new Vector3(90, 0, 0);
+    private Vector3 featureScale = Vector3.one * 5;
+
+    private Vector3 mapScale = new Vector3(1, -1, 1);
+    private Vector3 mapRotation = new Vector3(270, 90, 0);
 
     /// <summary>
     /// Loads 3D coordinates of features contained in the map
@@ -32,21 +30,10 @@ public class MapLoader
     {
         clearMap();
         loadedFeatures = 0;
-        totalFeatures = MetaioSDKUnity.get3DPointsFrom3Dmap(Path.Combine(Application.streamingAssetsPath, mapPath), featuresRaw);
+        totalFeatures = MetaioSDKUnity.get3DPointsFrom3Dmap(Application.dataPath + "\\StreamingAssets\\" + mapPath, featuresRaw);
         Debug.Log(String.Format("Loaded map has {0} features", totalFeatures));
         
         map = new GameObject("Feature Map") as GameObject;
-        map.AddComponent<EditorOnly>();     
-        map.tag = "EditorOnly"; // as set through editor
-        metaioTracker[] trackers = (metaioTracker[])GameObject.FindObjectsOfType(typeof(metaioTracker));
-        foreach (metaioTracker tracker in trackers)
-        {
-            if (tracker.cosID == 1)
-            {
-                map.transform.parent = tracker.transform;
-                break;
-            }
-        }
         
         // we transform the map due to differences between Unity COS and metaio COS  
         map.transform.eulerAngles = mapRotation;
@@ -63,20 +50,10 @@ public class MapLoader
     /// </returns>
     public bool createFeatures()
     {
-        Material mat = new Material(Shader.Find("Diffuse"));
-        mat.color = new Color(1, 0.2f, 0, 0.6f);
-        
         int i = 0;
         for (i = loadedFeatures; i < loadedFeatures + FEATURES_PACKAGES_AMOUNT && i < totalFeatures; i++)
         {
             GameObject feature = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-#if UNITY_EDITOR
-            UnityEngine.Object.DestroyImmediate(feature.GetComponent<SphereCollider>());
-#else
-            UnityEngine.Object.Destroy(feature.GetComponent<SphereCollider>());
-#endif
-            feature.GetComponent<MeshRenderer>().material = mat;
-            feature.isStatic = true;
             
             feature.transform.parent = map.transform;
             feature.transform.localScale = featureScale;

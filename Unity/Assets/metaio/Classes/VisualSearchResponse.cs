@@ -6,30 +6,28 @@ public struct VisualSearchResponse
 	/// <summary>
 	/// The name of the tracking configuration that is found
 	/// </summary>
-	public string trackingConfigurationName;
-
+	private String trackingConfigurationName;
+	
 	/// <summary>
 	/// The tracking configuration of the found target that can be directly loaded into metaioSDK
 	/// </summary>
-	public string trackingConfiguration;
-
-	/// <summary>
-	/// The visual search score
-	/// </summary>
-	public float visualSearchScore;
-
-	/// <summary>
-	/// Meta data (in JSON format)
-	/// </summary>
-	public string metadata;
+	private String trackingConfiguration;
 	
-	public static VisualSearchResponse FromPB(metaio.unitycommunication.VisualSearchResponse resp)
-	{
-		VisualSearchResponse ret = new VisualSearchResponse();
-		ret.trackingConfigurationName = resp.TrackingConfigurationName;
-		ret.trackingConfiguration = resp.TrackingConfiguration;
-		ret.visualSearchScore = resp.VisualSearchScore;
-		ret.metadata = resp.Metadata;
-		return ret;
-	}
+	/// <summary>
+	/// The name of the tracking configuration that is found
+	/// </summary>
+	public String TrackingConfigurationName
+    {
+        get { return trackingConfigurationName; }
+        set { trackingConfigurationName = value; }
+    }
+	
+	/// <summary>
+	/// The tracking configuration of the found target that can be directly loaded into metaioSDK
+	/// </summary>
+	public String TrackingConfiguration
+    {
+        get { return trackingConfiguration; }
+        set { trackingConfiguration = value; }
+    }
 }

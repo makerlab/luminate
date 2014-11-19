@@ -12,8 +12,7 @@ namespace metaio
 		Found = 4,
 		Extrapolated = 5,
 		Initialized = 6,
-	 	Registered = 7,
-		InitializationFailed = 8
+	 	Registered = 7
 	}
 	
 	public static class TrackingStateExtensions

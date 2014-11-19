@@ -214,6 +214,10 @@ static void QueryDeviceGeneration()
 			_DeviceGeneration = deviceiPhone4S;
 		else if (!strncmp(model, "iPhone6,",8))
 			_DeviceGeneration = deviceiPhone5S;
+		else if (!strncmp(model, "iPhone7,2",9))
+			_DeviceGeneration = deviceiPhone6;
+		else if (!strncmp(model, "iPhone7,1",9))
+			_DeviceGeneration = deviceiPhone6Plus;
 		else if (!strcmp(model, "iPod1,1"))
 			_DeviceGeneration = deviceiPodTouch1Gen;
 		else if (!strcmp(model, "iPod2,1"))

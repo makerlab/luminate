@@ -14,6 +14,7 @@
 #include <OpenGLES/ES2/glext.h>
 
 static DisplayManager* _DisplayManager = nil;
+extern bool _ios80orNewer;
 
 extern "C" void InitEAGLLayer(void* eaglLayer, bool use32bitColor);
 
@@ -50,6 +51,7 @@ extern "C" void InitEAGLLayer(void* eaglLayer, bool use32bitColor);
 {
 	return [self createView:useWithGles showRightAway:YES];
 }
+
 - (id)createView:(BOOL)useWithGles showRightAway:(BOOL)showRightAway;
 {
 	if(view == nil)
@@ -66,8 +68,18 @@ extern "C" void InitEAGLLayer(void* eaglLayer, bool use32bitColor);
 		{
 			view = useWithGles ? [GLView alloc] : [UIView alloc];
 			[view initWithFrame: [self->screen bounds]];
+#if defined(__IPHONE_8_0) 
+			if (!_ios80orNewer)
+				view.contentScaleFactor = self->screen.scale;
+#else
 			view.contentScaleFactor = self->screen.scale;
+#endif
 		}
+
+#if defined(__IPHONE_8_0) 
+		if (_ios80orNewer)
+			view.contentScaleFactor = self->screen.nativeScale;
+#endif
 
 		if(showRightAway)
 		{
@@ -76,8 +88,8 @@ extern "C" void InitEAGLLayer(void* eaglLayer, bool use32bitColor);
 		}
 
 		screenSize = [view.layer bounds].size;
-		screenSize.width  = roundf(screenSize.width) * screen.scale;
-		screenSize.height = roundf(screenSize.height) * screen.scale;
+		screenSize.width  = roundf(screenSize.width) * view.contentScaleFactor;
+		screenSize.height = roundf(screenSize.height) * view.contentScaleFactor;
 	}
 	// TODO: create context here: for now we cant call it as we will query unity for target api
 	/*

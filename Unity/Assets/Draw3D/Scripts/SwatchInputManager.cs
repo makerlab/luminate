@@ -10,6 +10,7 @@ public class SwatchInputManager : MonoBehaviour {
 
 	// A concept of a physical brush that chases an idealized target to smooth out line drawing
 	public Transform brush;
+	public Transform brushShadowGround;
 	public Transform target;
 	public Transform choice1;
 	public Transform choice2;
@@ -221,6 +222,9 @@ public class SwatchInputManager : MonoBehaviour {
 		// physics based smoothing - cursor move towards target to smoothen out user interaction
 		brush.transform.position = Vector3.Lerp(brush.transform.position, target.position, Time.deltaTime * 10.0f );
 		brush.transform.rotation = Quaternion.Slerp(brush.transform.rotation, target.rotation, Time.deltaTime * 10.0f );
+		
+		// shadow
+		brushShadowGround.transform.position = new Vector3(brush.transform.position.x,0,brush.transform.position.z);
 		
 		// deal with platform specific mouse down and move and up events
 		RuntimePlatform platform = Application.platform;

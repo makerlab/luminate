@@ -195,7 +195,7 @@ public class Swatch3d: MonoBehaviour {
 			writestyle = 2;
 			right = Vector3.Cross( forward, xyz - points[0] ).normalized * width; // hack
 		} else if(IncrementalDouglasPeucker == false) {
-			if( (xyz-points[count-1]).sqrMagnitude < sqrToleranceQuick) {
+			if( (xyz-points[count-2]).sqrMagnitude < sqrToleranceQuick) {
 				// TODO this seems to be producing non consistent results - examine XXX
 				writestyle = 3;
 			}
@@ -206,14 +206,14 @@ public class Swatch3d: MonoBehaviour {
 		case 0: // unused right now - always want to rewrite the second point and that is a hassle with this approach.
 			// force two points into the system
 			points.Add(xyz);
-			rights.Add(Vector3.right);
+			rights.Add(right);
 			forwards.Add(forward);
 			velocities.Add(width);
 			goto case 1;
 		case 1:
 			// tack on a point
 			points.Add(xyz);
-			rights.Add(Vector3.right);
+			rights.Add(right);
 			forwards.Add(forward);
 			velocities.Add(width);
 			if(IncrementalDouglasPeucker == true && simplifyDouglasPeucker()) flushIntermediate();

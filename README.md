@@ -3,6 +3,8 @@ Painting With Light
 ====================
 Oct 20 2014
 
+See also : https://medium.com/@anselm/painting-with-light-28770ac8d9a6
+
 ===========================
 Reaching me and helping out
 ===========================
